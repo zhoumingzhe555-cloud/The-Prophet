@@ -5,9 +5,9 @@ import pandas as pd
 import requests
 
 # --- 页面配置 ---
-st.set_page_config(page_title="预言家大满贯盘", page_icon="🔮", layout="centered")
+st.set_page_config(page_title="预言家娱乐模拟盘", page_icon="🔮", layout="centered")
 
-# --- 🎯 v16.0 顶级像素级紧凑正圆巧克力矩阵样式表 ---
+# --- 🎯 顶级像素级紧凑正圆巧克力矩阵样式表 ---
 st.markdown("""
     <style>
     /* 极致挤压手机端四周无用边距 */
@@ -94,7 +94,7 @@ st.markdown("""
 # --- 官方49码球色严格定义 ---
 RED_BALLS = [1, 2, 7, 8, 12, 13, 18, 19, 23, 24, 29, 30, 34, 35, 40, 45, 46]
 BLUE_BALLS = [3, 4, 9, 10, 14, 15, 20, 25, 26, 31, 36, 37, 41, 42, 47, 48]
-GREEN_BALLS = [5, 6, 11, 16, 17, 21, 22, 27, 28, 32, 33, 38, 39, 43, 44, 49]
+GREEN_BALLS = [5, 6, 11, 12, 16, 17, 21, 22, 27, 28, 32, 33, 38, 39, 43, 44, 49]
 
 def get_ball_style(num):
     if num in RED_BALLS: return "draw-red"
@@ -132,7 +132,7 @@ def fetch_live_data_50():
                     "issue": item.get("issue"),
                     "date": item.get("open_time")[:10],
                     "numbers": [int(x) for x in item.get("numbers")[:6]],
-                    "special": int(item.get("numbers"))
+                    "special": int(item.get("numbers")[6])
                 })
             if live_data: return live_data
     except Exception:
@@ -140,19 +140,19 @@ def fetch_live_data_50():
     return [{"issue": "26/051", "date": "2026-05-14", "numbers": [1, 14, 19, 23, 27, 34], "special": 49}]
 
 history_50 = fetch_live_data_50()
-latest_draw = history_50
+latest_draw = history_50[0]
 
-# ----------------- 🔮【绝对置顶一：全新加入预言家尊贵核心标志】 -----------------
+# ----------------- 🔮【置顶一：全新加入预言家尊贵核心标志】 -----------------
 st.markdown('<div class="prophet-logo-title">🔮 预言家 (The Prophet) 模拟大厅</div>', unsafe_allow_html=True)
 
-# ----------------- 🎰【绝对置顶二：官方实时中奖彩球】 -----------------
+# ----------------- 🎰【置顶二：官方实时中奖彩球】 -----------------
 ball_html = '<div class="draw-container">'
 for num in latest_draw['numbers']:
     ball_html += f'<div class="draw-ball {get_ball_style(num)}">{num}</div>'
 ball_html += f'<div class="draw-ball {get_ball_style(latest_draw["special"])}">{latest_draw["special"]}</div></div>'
 st.markdown(ball_html, unsafe_allow_html=True)
 
-# ----------------- 📅【绝对置顶三：开奖期数与公告对齐】 -----------------
+# ----------------- 📅【置顶三：开奖期数与公告对齐】 -----------------
 col_info1, col_info2 = st.columns(2)
 with col_info1:
     st.markdown(f"<div style='font-size:12px;color:#333;font-weight:bold;margin-top:2px;'>📡 第 {latest_draw['issue']} 期开奖 ({latest_draw['date']})</div>", unsafe_allow_html=True)
@@ -333,7 +333,7 @@ if st.session_state.bet_history:
             win_sum = 0
             for bet in st.session_state.bet_history:
                 if bet["状态"] == "等待开奖":
-                    raw = bet["原始 data"] if "原始 data" in bet else bet["原始数据"]
+                    raw = bet["原始数据"]
                     if bet["玩法"] in ["手选单式", "一马中特"]:
                         match_m = len(set(raw["ping"]) & set(win_main))
                         match_s = (raw["te"] == win_special)
@@ -371,4 +371,3 @@ with st.expander(f"📅 点击展开/查阅全网最新 50 期开奖真实历史
             正码: {', '.join(f'{n:02d}' for n in draw['numbers'])} | <span style="color:#dc143c; font-weight:bold;">特别号: {draw['special']:02d}</span>
         </div>
         """, unsafe_allow_html=True)
-
