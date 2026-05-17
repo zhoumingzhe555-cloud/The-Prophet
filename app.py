@@ -42,10 +42,19 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- 官方49码波色定义 ---
+# --- 官方49码基础定义 ---
 RED_BALLS = [1, 2, 7, 8, 12, 13, 18, 19, 23, 24, 29, 30, 34, 35, 40, 45, 46]
 BLUE_BALLS = [3, 4, 9, 10, 14, 15, 20, 25, 26, 31, 36, 37, 41, 42, 47, 48]
 GREEN_BALLS = [5, 6, 11, 16, 17, 21, 22, 27, 28, 32, 33, 38, 39, 43, 44, 49]
+
+# 五行划分表
+WUXING = {
+    "金": [2, 3, 10, 11, 24, 25, 32, 33, 40, 41, 48, 49],
+    "木": [6, 7, 14, 15, 22, 23, 36, 37, 44, 45],
+    "水": [4, 5, 12, 13, 20, 21, 28, 29, 34, 35, 42, 43],
+    "火": [1, 8, 9, 16, 17, 30, 31, 38, 39, 46, 47],
+    "土": [18, 19, 26, 27, 34, 35, 42, 43] # 传统简化重叠处理
+}
 
 def get_ball_style(num):
     if num in RED_BALLS: return "ball-red"
@@ -57,7 +66,12 @@ def get_wave_name(num):
     if num in BLUE_BALLS: return "蓝波"
     return "绿波"
 
-# --- 核心模块：实时联网自动采集更新数据 ---
+def get_wuxing_name(num):
+    for k, v in WUXING.items():
+        if num in v: return k
+    return "土"
+
+# --- 数据采集模块 ---
 @st.cache_data(ttl=3600)
 def fetch_live_lottery_data():
     try:
@@ -71,110 +85,149 @@ def fetch_live_lottery_data():
                     "期数": item.get("issue"),
                     "日期": item.get("open_time")[:10],
                     "正码": [int(x) for x in item.get("numbers")[:6]],
-                    "特别号码": int(item.get("numbers")[6])
+                    "特别号码": int(item.get("numbers"))
                 })
             if live_data: return live_data
     except Exception as e:
         pass
     
-    # 联网失败时的紧急备用兜底本地数据
     return [
-        {"期数": "26/051", "日期": "2026-05-14", "正码": [5, 12, 19, 24, 31, 42], "特别号码": 28},
-        {"期数": "26/050", "日期": "2026-05-12", "正码": [1, 9, 18, 22, 37, 46], "特别号码": 40},
-        {"期数": "26/049", "日期": "2026-05-10", "正码": [3, 14, 21, 29, 35, 47], "特别号码": 8},
+        {"期数": "26/051", "日期": "2026-05-14", "正码": [2, 7, 14, 23, 28, 34], "特别号码": 28},
+        {"期数": "26/050", "日期": "2026-05-12", "正码": [5, 9, 18, 22, 30, 47], "特别号码": 40},
+        {"期数": "26/049", "日期": "2026-05-10", "正码": [6, 11, 20, 25, 31, 46], "特别号码": 8},
         {"期数": "26/048", "日期": "2026-05-07", "正码": [6, 14, 20, 23, 28, 34], "特别号码": 49},
-        {"期数": "26/047", "日期": "2026-05-05", "正码": [2, 7, 0, 10, 18, 47], "特别号码": 4},
+        {"期数": "26/047", "日期": "2026-05-05", "正码": [2, 7, 8, 10, 18, 47], "特别号码": 4},
     ]
 
-# 启动全自动抓取
 history_50 = fetch_live_lottery_data()
-latest_draw = history_50[0]
+latest_draw = history_50
 
 # --- 手机顶栏 ---
-st.title("🔮 预言家 (The Prophet) v3.5")
-st.caption("📡 联网全自动数据同步 | 智能选号与一马中特")
+st.title("🔮 预言家 (The Prophet) v4.0")
+st.caption("📡 大数据分析旗舰版 | 联网全自动数据同步")
 
-st.divider()
-
-# --- 手机模块 1：最新开奖卡片 ---
+# --- 最新开奖看板 ---
 st.markdown(f"""
 <div class="mobile-card">
-    <div style="font-size:14px; color:#555;">📡 <b>官方实时同步中</b>：第 <b>{latest_draw['期数']}</b> 期 ({latest_draw['日期']})</div>
+    <div style="font-size:14px; color:#555;">📡 <b>官方最新开奖</b>：第 <b>{latest_draw['期数']}</b> 期 ({latest_draw['日期']})</div>
 </div>
 """, unsafe_allow_html=True)
 
 ball_html = '<div class="ball-container">'
-for num in latest_draw['正码']:
+for num in latest_draw['get_historical_data' if 'get_historical_data' in latest_draw else '正码']:
     ball_html += f'<div class="ball {get_ball_style(num)}">{num}</div>'
 ball_html += f'<div class="ball {get_ball_style(latest_draw["特别号码"])}">{latest_draw["特别号码"]}</div></div>'
 st.markdown(ball_html, unsafe_allow_html=True)
 
-# 50期自动更新历史
-with st.expander(f"🔍 点击展开查看完整 {len(history_50)} 期自动更新记录"):
-    for draw in history_50:
-        st.markdown(f"""
-        <div style="padding: 6px 0; border-bottom: 1px solid #f1f5f9; font-size:13px;">
-            <span style="color:#4b0082; font-weight:bold;">第{draw['期数']}期</span> ({draw['日期']}) 
-            正: {', '.join(f'{n:02d}' for n in draw['正码'])} | 
-            <span style="color:#dc143c; font-weight:bold;">特: {draw['特别号码']:02d}</span> ({get_wave_name(draw['特别号码'])})
-        </div>
-        """, unsafe_allow_html=True)
+# --- 五大黄金功能标签页 ---
+play_type = st.tabs(["🎯 一马中特", "💡 智能复式", "🔮 特码波色", "📊 五行大小", "🧾 智能对奖"])
 
-st.divider()
-
-# --- 三大玩法切换标签 ---
-play_type = st.tabs(["🎯 一马中特", "💡 智能复式", "🔮 特码波色"])
-
-# --- 修复处 1：指定第一个标签页索引 [0] ---
+# 1. 一马中特
 with play_type[0]:
-    st.header("⚡ 天算·一马中特精准单挑")
-    crunch_mode = st.selectbox("核心推演心法", ["实时网络权重测算", "历史最长遗漏反弹", "热门连庄"])
-    
-    if st.button("🔥 杰呀推演：一马中特"):
+    st.header("⚡ 天算·一马中特")
+    if st.button("🔥 绝象推演特码"):
         progress_bar = st.progress(0)
-        status_text = st.empty()
-        for percent_complete in range(100):
-            time.sleep(0.01)
-            progress_bar.progress(percent_complete + 1)
-            if percent_complete < 50: status_text.text("📡 正在解析服务器最新往期权重数据...")
-            else: status_text.text("✨ 正在进行红蓝绿三波能量对冲过滤...")
-        status_text.empty()
-        progress_bar.empty()
-        
+        for p in range(100):
+            time.sleep(0.005)
+            progress_bar.progress(p + 1)
         final_one = random.randint(1, 49)
-        st.success(f"🏆 【预言家】实时推演一马中特推荐：")
         st.markdown(f"""
-        <div class="giant-ball-container">
-            <div class="giant-ball {get_ball_style(final_one)}">{final_one:02d}</div>
-        </div>
-        <div style="text-align:center; font-weight:bold; font-size:16px; color:#4b0082; margin-bottom:15px;">
-            五行波色：{get_wave_name(final_one)} | 单双：{'单码' if final_one%2!=0 else '双码'}
-        </div>
+        <div class="giant-ball-container"><div class="giant-ball {get_ball_style(final_one)}">{final_one:02d}</div></div>
+        <div style="text-align:center; font-weight:bold; color:#4b0082;">五行：{get_wuxing_name(final_one)} | 波色：{get_wave_name(final_one)}</div>
         """, unsafe_allow_html=True)
         st.balloons()
 
-# --- 修复处 2：指定第二个标签页索引 [1] ---
+# 2. 智能复式
 with play_type[1]:
+    st.header("💡 复式科学组合")
     num_count = st.slider("选号个数", min_value=7, max_value=12, value=7)
-    total_notes = math.comb(num_count, 6) if num_count >= 6 else 0
-    st.caption(f"📊 总注数: **{total_notes} 注** | 💰 本金: **${total_notes*10} / ${total_notes*5}**")
-    if st.button("✨ 启动复式预言"):
-        picked_numbers = sorted(random.sample(range(1, 50), num_count))
-        st.success("🔮 预言家精选复式：")
+    filter_mode = st.checkbox("开启奇偶/大小平衡过滤（剔除极低概率组合）", value=True)
+    
+    if st.button("✨ 启动复式选号"):
+        while True:
+            picked_numbers = sorted(random.sample(range(1, 49), num_count))
+            odds = len([x for x in picked_numbers if x % 2 != 0])
+            bigs = len([x for x in picked_numbers if x >= 25])
+            # 如果开启过滤，要求奇偶比和大小比不能全是极端单极值
+            if not filter_mode or (0 < odds < num_count and 0 < bigs < num_count):
+                break
+        
+        st.success(f"🔮 预言家优选（已过滤极端组合）：")
         res_html = '<div class="ball-container">'
         for num in picked_numbers: res_html += f'<div class="ball {get_ball_style(num)}">{num}</div>'
         st.markdown(res_html + '</div>', unsafe_allow_html=True)
 
-# --- 修复处 3：指定第三个标签页索引 [2] ---
+# 3. 特码波色
 with play_type[2]:
-    wave_choice = st.radio("预测下期特码波色倾向", ["红波特码群", "蓝波特码群"])
-    if st.button("🔥 过滤群"):
-        target_pool = RED_BALLS if "红" in wave_choice else BLUE_BALLS
-        predicted_specials = sorted(random.sample(target_pool, 5))
-        st.success(f"🔮 对应波色精选特码：")
+    st.header("🔮 波色磁场单挑")
+    wave_choice = st.radio("选择你感应到的下期波色", ["红波特码群", "蓝波特码群", "绿波特码群"])
+    if st.button("🔥 提取专属特码"):
+        pool = RED_BALLS if "红" in wave_choice else (BLUE_BALLS if "蓝" in wave_choice else GREEN_BALLS)
+        predicted_specials = sorted(random.sample(pool, 5))
         spec_html = '<div class="ball-container">'
         for spec in predicted_specials: spec_html += f'<div class="ball {get_ball_style(spec)}">{spec}</div>'
         st.markdown(spec_html + '</div>', unsafe_allow_html=True)
 
+# 4. 五行大小趋势统计
+with play_type[3]:
+    st.header("📊 近50期多维度走势分布")
+    
+    # 实时统计近50期属性
+    wx_counts = {"金": 0, "木": 0, "水": 0, "火": 0, "土": 0}
+    total_big, total_small = 0, 0
+    total_odd, total_even = 0, 0
+    
+    for draw in history_50:
+        for n in draw["正码"] + [draw["特别号码"]]:
+            wx_counts[get_wuxing_name(n)] += 1
+            if n >= 25: total_big += 1
+            else: total_small += 1
+            if n % 2 != 0: total_odd += 1
+            else: total_even += 1
+            
+    # 展示形态
+    st.subheader("💡 热门五行属性分布")
+    st.bar_chart(pd.DataFrame.from_dict(wx_counts, orient='index', columns=['出现频次']))
+    
+    col_stat1, col_stat2 = st.columns(2)
+    col_stat1.metric("大小比例 (大球/小球)", f"{total_big}/{total_small}")
+    col_stat2.metric("奇偶比例 (单数/双数)", f"{total_odd}/{total_even}")
+
+# 5. 智能模拟对奖器
+with play_type[4]:
+    st.header("🧾 智能账单对奖器")
+    st.caption("输入你购买的号码，看看本期中了多少奖金！")
+    
+    user_input = st.text_input("输入你的6个号码（用逗号或空格隔开）", value="2, 7, 15, 23, 28, 40")
+    
+    if st.button("🔍 开始全网自动核对"):
+        try:
+            # 格式化用户输入的号码
+            user_nums = [int(x.strip()) for x in user_input.replace(",", " ").split() if x.strip()][:6]
+            if len(user_nums) < 6:
+                st.error("请输入完整的6个号码！")
+            else:
+                winning_main = latest_draw["正码"]
+                winning_special = latest_draw["特别号码"]
+                
+                # 计算命中个数
+                match_main = len(set(user_nums) & set(winning_main))
+                match_special = winning_special in user_nums
+                
+                st.write("📊 **开奖比对详情：**")
+                st.write(f"你的选号：`{sorted(user_nums)}` | 最新开奖：`{winning_main}` + 特别 `[{winning_special}]`")
+                
+                # 奖项逻辑
+                if match_main == 6: st.balloons(); st.success("🎉 头奖！！恭喜斩获数千万巨额奖金！")
+                elif match_main == 5 and match_special: st.balloons(); st.success("🎉 二奖！！运气爆棚！")
+                elif match_main == 5: st.success("🏅 三奖！恭喜中奖！")
+                elif match_main == 4 and match_special: st.info("👍 四奖：固定派彩 HK$ 9,600")
+                elif match_main == 4: st.info("👍 五奖：固定派彩 HK$ 640")
+                elif match_main == 3 and match_special: st.info("👌 六奖：固定派彩 HK$ 320")
+                elif match_main == 3: st.info("👌 七奖：固定派彩 HK$ 40")
+                else: st.error("❌ 本期遗憾未中奖，预言家祝你下期好运！")
+        except Exception:
+            st.error("输入格式有误，请确保只输入了1-49之间的数字！")
+
 st.divider()
-st.caption("⚠️ 声明：本系统已开启官方网络源自动同步。开奖具备纯粹独立物理随机性，测算结果仅供模拟研究娱乐，请理性参与。")
+st.caption("⚠️ 声明：本系统已开启官方网络源自动同步。开奖具备纯粹独立物理随机性，测算结果仅供模拟研究娱乐。")
