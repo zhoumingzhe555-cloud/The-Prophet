@@ -7,13 +7,13 @@ import requests
 # --- 页面配置 ---
 st.set_page_config(page_title="预言家娱乐模拟盘", page_icon="🔮", layout="centered")
 
-# --- 🎯 v19.0 全原生等比铁板死锁样式表 ---
+# --- 🎯 v20.0 极致原生像素级巧克力死锁网格与特权 UI 样式表 ---
 st.markdown("""
     <style>
     /* 极致挤压手机端四周无用边距 */
     .block-container { padding-top: 0.2rem !important; padding-bottom: 0.2rem !important; padding-left: 0.2rem !important; padding-right: 0.2rem !important; }
     
-    /* 预言家顶层核心防伪标志样式 */
+    /* 预言家顶层核心标志样式 */
     .prophet-logo-title {
         text-align: center !important; font-size: 20px !important; font-weight: 900 !important;
         background: linear-gradient(135deg, #ffd700, #8a2be2, #00f2fe) !important;
@@ -63,13 +63,16 @@ st.markdown("""
     
     .wallet-card-mini { background: linear-gradient(135deg, #111, #222); color: #ffd700; padding: 6px; border-radius: 8px; text-align: center; font-weight: bold; font-size: 12px; border: 1px solid #333; height: 42px; line-height: 28px; }
     .rank-badge { background: #8a2be2; color: white; padding: 1px 4px; border-radius: 5px; font-size: 10px; margin-left: 2px; }
+    
+    /* 超级后台控制舱专用美化样式 */
+    .admin-panel-box { background-color: #fff0f5; border: 2px dashed #ff1493; padding: 10px; border-radius: 12px; margin-top: 25px; }
     </style>
     """, unsafe_allow_html=True)
 
 # --- 官方49码球色严格定义 ---
-RED_BALLS = [1, 2, 7, 8, 12, 13, 18, 19, 23, 24, 29, 30, 34, 35, 40, 45, 46]
-BLUE_BALLS = [3, 4, 9, 10, 14, 15, 20, 25, 26, 31, 36, 37, 41, 42, 47, 48]
-GREEN_BALLS = [5, 6, 11, 16, 17, 21, 22, 27, 28, 32, 33, 38, 39, 43, 44, 49]
+RED_BALLS =
+BLUE_BALLS =
+GREEN_BALLS =
 
 def get_ball_style(num):
     if num in RED_BALLS: return "draw-red"
@@ -81,7 +84,7 @@ def get_ball_color_class(num):
     if num in BLUE_BALLS: return "ball-b"
     return "ball-g"
 
-# --- 初始化 Session State ---
+# --- 初始化 Session State 核心数据锁 ---
 if 'wallet' not in st.session_state: st.session_state.wallet = 0.0  
 if 'has_deposited' not in st.session_state: st.session_state.has_deposited = False  
 if 'bet_history' not in st.session_state: st.session_state.bet_history = []
@@ -90,35 +93,36 @@ if 'manual_te' not in st.session_state: st.session_state.manual_te = []
 if 'current_tab' not in st.session_state: st.session_state.current_tab = "自选平特"
 if 'last_win_msg' not in st.session_state: st.session_state.last_win_msg = ""
 
-# 🛠️【核心加设】管理员全局控制开关状态锁（默认开启）
-if 'allow_deposit' not in st.session_state: st.session_state.allow_deposit = True
+# 🛡️ 独享特权控制门控锁初始化
+if 'admin_allow_deposit' not in st.session_state: st.session_state.admin_allow_deposit = True # 默认公开允许充值
 
 if 'count_f' not in st.session_state: st.session_state.count_f = 7
 if 'count_dan' not in st.session_state: st.session_state.count_dan = 2
 if 'count_tuo' not in st.session_state: st.session_state.count_tuo = 6
 
-# --- 数据采集模块 ---
-@st.cache_data(ttl=3600)
-def fetch_live_data_50():
+# --- 🛡️ 核心修复：金身不坏的高级防崩溃网络数据安全沙盒 ---
+def get_safe_live_data():
+    fallback_data = [{"issue": "26/051", "date": "2026-05-14", "numbers":, "special": 49}]
     try:
         url = "https://cpdata.io"
-        response = requests.get(url, timeout=5)
+        response = requests.get(url, timeout=4)
         if response.status_code == 200:
             res_json = response.json()
-            live_data = []
-            for item in res_json.get("data", []):
-                live_data.append({
-                    "issue": item.get("issue"),
-                    "date": item.get("open_time")[:10],
-                    "numbers": [int(x) for x in item.get("numbers")[:6]],
-                    "special": int(item.get("numbers")[-1]) if len(item.get("numbers", [])) > 6 else int(item.get("numbers")[-1])
-                })
-            if live_data: return live_data
+            raw_list = res_json.get("data", [])
+            clean_list = []
+            for item in raw_list:
+                nums_raw = item.get("numbers", [])
+                if len(nums_raw) >= 7:
+                    clean_list.append({
+                        "issue": item.get("issue"), "date": item.get("open_time")[:10],
+                        "numbers": [int(x) for x in nums_raw[:6]], "special": int(nums_raw)
+                    })
+            if clean_list: return clean_list
     except Exception:
         pass
-    return [{"issue": "26/051", "date": "2026-05-14", "numbers": [1, 14, 19, 23, 27, 34], "special": 49}]
+    return fallback_data
 
-history_50 = fetch_live_data_50()
+history_50 = get_safe_live_data()
 latest_draw = history_50
 
 # ----------------- 🔮【绝对置顶一：防伪大厅标志】 -----------------
@@ -131,14 +135,14 @@ for num in latest_draw['numbers']:
 ball_html += f'<div class="draw-ball {get_ball_style(latest_draw["special"])}">{latest_draw["special"]}</div></div>'
 st.markdown(ball_html, unsafe_allow_html=True)
 
-# ----------------- 📅【绝对置顶三：开奖期数与公告对齐】 -----------------
+# ----------------- 📅【绝对置顶三：开奖期数与公告】 -----------------
 col_info1, col_info2 = st.columns(2)
 with col_info1:
     st.markdown(f"<div style='font-size:12px;color:#333;font-weight:bold;margin-top:2px;'>📡 第 {latest_draw['issue']} 期开奖 ({latest_draw['date']})</div>", unsafe_allow_html=True)
 with col_info2:
     st.markdown("<div style='font-size:12px;color:#8a2be2;font-weight:bold;text-align:right;'>📢 下期截止：05-19 21:15</div>", unsafe_allow_html=True)
 
-# ----------------- 🪙【资产钱包与自定义自主金额充值模块】 -----------------
+# ----------------- 🪙【第四步：资产钱包与自定义自主金额充值模块】 -----------------
 def get_player_rank(balance):
     if balance >= 50000: return "🏆神算"
     if balance >= 20000: return "💎金手"
@@ -154,18 +158,18 @@ with col_w1:
         st.markdown("<div style='height:42px; line-height:42px; font-size:12px; color:#999; font-style:italic;'>⚠️ 请先在右侧充值模拟体验金</div>", unsafe_allow_html=True)
 
 with col_w2:
-    col_input, col_btn = st.columns()
-    with col_input:
-        deposit_amount = st.number_input("充值额", min_value=100, max_value=500000, value=5000, step=100, label_visibility="collapsed", key="dep_val")
-    with col_btn:
-        if st.button("🧧 确认充值", key="top_up_v15"):
-            # 🔥【后台权限拦截判定】
-            if not st.session_state.allow_deposit:
-                st.error("❌ 充值失败！系统管理员已临时关闭全局充值通道。")
-            else:
+    # 🔥【特权注入】：判断超级后台是否关闭了公开充值权限
+    if st.session_state.admin_allow_deposit:
+        col_input, col_btn = st.columns()
+        with col_input:
+            deposit_amount = st.number_input("充值额", min_value=100, max_value=500000, value=5000, step=100, label_visibility="collapsed", key="dep_val")
+        with col_btn:
+            if st.button("🧧 确认充值", key="top_up_v18"):
                 st.session_state.wallet += float(deposit_amount)
                 st.session_state.has_deposited = True  
                 st.rerun()
+    else:
+        st.markdown("<div style='height:42px; line-height:42px; font-size:12px; color:#ff1493; font-weight:bold; text-align:center;'>❌ 充值通道维护，请联系庄家</div>", unsafe_allow_html=True)
 
 st.write("")
 
@@ -331,7 +335,7 @@ if st.session_state.bet_history:
             win_special = latest_draw["special"]
             win_sum = 0
             for bet in st.session_state.bet_history:
-                if bet["状态"] == "娱乐盘等待奖":
+                if bet["状态"] == "等待开奖":
                     raw = bet["原始数据"]
                     if bet["玩法"] in ["手选单式", "一马中特"]:
                         match_m = len(set(raw["ping"]) & set(win_main))
@@ -371,29 +375,33 @@ with st.expander(f"📅 点击展开/查阅全网最新 50 期开奖真实历史
         </div>
         """, unsafe_allow_html=True)
 
-# ----------------- 🔒【第六步：加设隐藏后台管理权限控制台】 -----------------
+# ----------------- 🛡️【全新高阶功能：超级特权控制舱（默认隐藏展开）】 -----------------
 st.write("")
-with st.expander("⚙️ 🔒 预言家控制台 (管理员后台控制开关)"):
-    st.markdown("<div style='font-size:13px; color:#555; font-weight:bold;'>🛠️ 游戏大盘核心风控阀门：</div>", unsafe_allow_html=True)
+with st.expander("🔐 庄家高级内部超级控制舱"):
+    st.markdown('<div class="admin-panel-box">', unsafe_allow_html=True)
+    st.markdown("<h4 style='color:#ff1493; margin-top:0;'>🛡️ 预言家超级后台特权控制面板</h4>", unsafe_allow_html=True)
     
-    # 🔥 允许/禁止充值的核心控制开关（通过直接联动改变逻辑阀门）
-    st.session_state.allow_deposit = st.toggle("允许大盘充值模拟体验金", value=st.session_state.allow_deposit)
-    
-    if st.session_state.allow_deposit:
-        st.caption("🟢 当前状态：**充值通道正常开放**。允许普通玩家输入金额自由为虚拟账户充值。")
+    # 庄家认证密码（默认 888888）
+    admin_pwd = st.text_input("🔑 请输入超级庄家管理密码", type="password", key="pwd_gate")
+    if admin_pwd == "888888":
+        st.success("🔓 庄家特权身份核验成功！密码正确。")
+        
+        # 核心设置：一键开启或封锁全网用户的公开充值通道
+        control_status = st.radio(
+            "🎛️ 调节全网玩家充值通道门禁开关：",
+            ["🟢 允许公开自由充值金 (正常状态)", "❌ 全局封锁通道 (玩家无法充值)"],
+            index=0 if st.session_state.admin_allow_deposit else 1
+        )
+        
+        # 联动写入全量锁
+        if "🟢" in control_status:
+            st.session_state.admin_allow_deposit = True
+        else:
+            st.session_state.admin_allow_deposit = False
+            
+        if st.button("💾 确认封锁/放行应用特权命令", key="save_admin"):
+            st.toast("⚡ 庄家特权设置已全网秒级广播同步完毕！")
+            st.rerun()
     else:
-        st.caption("🔴 当前状态：**充值通道已关闭封锁**。任何充值点击都会被系统风控强行拦截报错。")
-    
-    st.divider()
-    st.markdown("<div style='font-size:13px; color:#555; font-weight:bold;'>🚨 危险高危操作区：</div>", unsafe_allow_html=True)
-    col_adm1, col_adm2 = st.columns(2)
-    with col_adm1:
-        if st.button("☠️ 一键清零玩家钱包本金", key="adm_clear_wallet"):
-            st.session_state.wallet = 0.0
-            st.session_state.has_deposited = False
-            st.rerun()
-    with col_adm2:
-        if st.button("💣 强制重置清空投注单总账", key="adm_clear_history"):
-            st.session_state.bet_history = []
-            st.session_state.last_win_msg = ""
-            st.rerun()
+        st.caption("🔒 超级控制指令正处于安全脱机锁死状态。请输入正确密码解密控制板。")
+    st.markdown('</div>', unsafe_allow_html=True)
