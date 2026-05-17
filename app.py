@@ -7,7 +7,7 @@ import requests
 from datetime import datetime
 
 # --- 页面配置 ---
-st.set_page_config(page_title="预言家娱乐模拟盘", page_icon="🔮", layout="centered")
+st.set_page_config(page_title="预言家大满贯盘", page_icon="🔮", layout="centered")
 
 # --- 🎯 v11.0 像素级无缝巧克力方阵与幻彩 UI 样式表 ---
 st.markdown("""
@@ -57,10 +57,10 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- 官方49码球色划分 ---
-RED_BALLS =
-BLUE_BALLS =
-GREEN_BALLS =
+# --- 🎯【核心修复】官方49码完整波色划分定义 ---
+RED_BALLS = [1, 2, 7, 8, 12, 13, 18, 19, 23, 24, 29, 30, 34, 35, 40, 45, 46]
+BLUE_BALLS = [3, 4, 9, 10, 14, 15, 20, 25, 26, 31, 36, 37, 41, 42, 47, 48]
+GREEN_BALLS = [5, 6, 11, 16, 17, 21, 22, 27, 28, 32, 33, 38, 39, 43, 44, 49]
 
 def get_ball_style(num):
     if num in RED_BALLS: return "ball-red"
@@ -103,12 +103,12 @@ def fetch_live_data_50():
             if live_data: return live_data
     except Exception:
         pass
-    return [{"issue": "26/051", "date": "2026-05-14", "numbers":, "special": 49}]
+    return [{"issue": "26/051", "date": "2026-05-14", "numbers": [2, 7, 15, 24, 31, 42], "special": 49}]
 
 history_50 = fetch_live_data_50()
 latest_draw = history_50
 
-# --- 👑 智能计算玩家当前的模拟博弈荣誉段位 ---
+# --- 荣誉段位逻辑 ---
 def get_player_rank(balance):
     if balance >= 50000: return "🏆 至尊神算"
     if balance >= 20000: return "💎 黄金手脑"
@@ -184,7 +184,7 @@ if st.session_state.current_tab == "自选平特":
     st.info(f"🛒 篮子状态：平码【{len(st.session_state.manual_ping)}/5】 | 特码【{len(st.session_state.manual_te)}/1】")
     st.markdown("**🟠 选 5 个【平码（正码）】：**")
     html_ping_matrix = '<div class="html-grid-matrix">'
-    for num in range(1, 49):
+    for num in range(1, 50):
         is_sel = num in st.session_state.manual_ping
         cls = "hb-selected" if is_sel else get_html_ball_class(num)
         html_ping_matrix += f'<a href="?click_ping={num}" target="_self" class="html-ball-btn {cls}" style="text-decoration:none;">{num}</a>'
@@ -192,7 +192,7 @@ if st.session_state.current_tab == "自选平特":
     st.write("")
     st.markdown("**🔵 选 1 个【特码（特别号码）】：**")
     html_te_matrix = '<div class="html-grid-matrix">'
-    for num in range(1, 49):
+    for num in range(1, 50):
         is_sel = num in st.session_state.manual_te
         cls = "hb-selected" if is_sel else get_html_ball_class(num)
         html_te_matrix += f'<a href="?click_te={num}" target="_self" class="html-ball-btn {cls}" style="text-decoration:none;">{num}</a>'
@@ -217,7 +217,7 @@ if st.session_state.current_tab == "自选平特":
 elif st.session_state.current_tab == "一马中特":
     st.markdown("### 🎯 巧克力正圆网格：一马中特单挑（每注$50）")
     html_one_matrix = '<div class="html-grid-matrix">'
-    for num in range(1, 49):
+    for num in range(1, 50):
         cls = get_html_ball_class(num)
         html_one_matrix += f'<a href="?click_one={num}" target="_self" class="html-ball-btn {cls}" style="text-decoration:none;">{num}</a>'
     st.markdown(html_one_matrix + '</div>', unsafe_allow_html=True)
@@ -300,7 +300,6 @@ if st.session_state.bet_history:
                         if match_any >= 3: st.session_state.wallet += 160.0; win_sum += 160; bet["状态"] = f"🎉 中码！+$160"
                         else: bet["状态"] = "❌ 未中奖"
             
-            # 优化增加：自动生成群聊炫耀中奖战报
             st.session_state.last_win_msg = f"🔮【预言家娱乐模拟盘·喜报】\n时间：{datetime.now().strftime('%H:%M:%S')}\n玩家成功进行全网自动派彩对奖结算！\n🎯 本轮共计斩获模拟体验金：HK$ {win_sum:,.2f}！\n💰 当前荣誉身价总额：HK$ {st.session_state.wallet:,.2f}，特此公告群友！🔥"
             st.rerun()
             
@@ -312,7 +311,6 @@ if st.session_state.bet_history:
     df_history = pd.DataFrame(st.session_state.bet_history)
     st.dataframe(df_history, use_container_width=True, hide_index=True)
     
-    # 动态渲染复制喜报战报区
     if st.session_state.last_win_msg:
         st.text_area("📋 【中奖喜报】长按下方区域全选复制，发送给朋友炫耀战绩吧！", value=st.session_state.last_win_msg, height=110)
 else:
@@ -322,7 +320,6 @@ else:
 st.divider()
 st.header("📊 50期网络源·智能多维度走势雷达")
 
-# 统计分析近50期属性
 total_big, total_small = 0, 0
 total_odd, total_even = 0, 0
 hot_counts = {i: 0 for i in range(1, 50)}
@@ -335,7 +332,6 @@ for draw in history_50:
         if n % 2 != 0: total_odd += 1
         else: total_even += 1
 
-# 输出高级数据雷达卡片
 col_stat1, col_stat2 = st.columns(2)
 with col_stat1: st.metric("50期正码大小倾向 (大球/小球)", f"{total_big} / {total_small}")
 with col_stat2: st.metric("50期正码单双倾向 (单数/双数)", f"{total_odd} / {total_even}")
