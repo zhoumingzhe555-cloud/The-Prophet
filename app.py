@@ -9,11 +9,11 @@ from datetime import datetime
 # --- 页面配置 ---
 st.set_page_config(page_title="预言家大满贯盘", page_icon="🔮", layout="centered")
 
-# --- 🎯 极致像素级横向重排与超紧凑间距样式表 ---
+# --- 🎯 极致无缝巧克力方阵样式表 (让数字球真正挨在一起) ---
 st.markdown("""
     <style>
-    /* 清除手机屏幕上下左右所有废白边 */
-    .block-container { padding-top: 0.4rem; padding-bottom: 0.4rem; padding-left: 0.2rem; padding-right: 0.2rem; }
+    /* 清除整个手机屏幕四周的所有废白 */
+    .block-container { padding-top: 0.4rem; padding-bottom: 0.4rem; padding-left: 0.3rem; padding-right: 0.3rem; }
     
     /* 核心行动大按钮 */
     .stButton>button { 
@@ -22,57 +22,51 @@ st.markdown("""
         font-size: 15px !important; font-weight: bold !important; border: none !important;
     }
     
-    /* 顶部导航卡片样式 */
-    .nav-container div[data-testid="stHorizontalBlock"] {
-        display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; gap: 4px !important; margin-bottom: 6px !important;
-    }
+    /* 顶部导航药丸卡片 */
+    .nav-container div[data-testid="stHorizontalBlock"] { display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; gap: 4px !important; margin-bottom: 6px !important; }
     .nav-container div[data-testid="stHorizontalBlock"] button {
         background: linear-gradient(135deg, #2c3e50, #1a252f) !important; color: white !important;
         font-size: 11px !important; font-weight: bold !important; height: 38px !important; width: 100% !important; border-radius: 8px !important; border: 1px solid #34495e !important; aspect-ratio: auto !important;
     }
-    .nav-container .nav-active button {
-        background: linear-gradient(135deg, #ffd700, #ff8c00) !important; color: #1a1a1a !important; border: 1px solid #ffffff !important; font-weight: 900 !important;
-    }
+    .nav-container .nav-active button { background: linear-gradient(135deg, #ffd700, #ff8c00) !important; color: #1a1a1a !important; border: 1px solid #ffffff !important; font-weight: 900 !important; }
     
-    /* 🔥【极致无缝压缩】下方1-49号码盘垂直与水平间距极限压榨 */
-    .num-matrix-container {
-        margin-top: -5px !important;
-    }
-    .num-matrix-container div[data-testid="stVerticalBlock"] {
-        gap: 0px !important;
-        padding: 0px !important;
-        margin: 0px !important;
-    }
-    /* 强控横向 7 列横排，同时将上下行距完美卡扣在一起 */
-    .num-matrix-container div[data-testid="stHorizontalBlock"] {
+    /* 🎰【极致挨贴】无缝弹性矩阵盒子 —— 让123和456真正紧紧抱团 */
+    .html-grid-matrix {
         display: flex !important;
-        flex-direction: row !important; 
-        flex-wrap: nowrap !important;   
-        gap: 1px !important;            /* 🔥【左右极致缩小】球与球左右间距降到 1 像素 */
-        margin-top: 0px !important;
-        margin-bottom: 1px !important;  /* 🔥【上下极致缩小】行与行上下间距降到 1 像素 */
-        padding: 0px !important;
-        height: auto !important;        
-    }
-    .num-matrix-container div[data-testid="stHorizontalBlock"] > div {
-        flex: 1 1 0% !important; min-width: 0 !important; padding: 0 !important; margin: 0 !important;
-    }
-    /* 精准锁定每一个按钮为完美的自适应正圆球体 */
-    .num-matrix-container div[data-testid="stHorizontalBlock"] button {
-        color: white !important; font-weight: bold !important; font-size: 14px !important; border: none !important; 
-        border-radius: 50% !important; width: 100% !important; aspect-ratio: 1 / 1 !important; padding: 0px !important; margin: 0px auto !important;
-        box-shadow: 1px 1px 2px rgba(0,0,0,0.15) !important;
-        display: flex !important; align-items: center !important; justify-content: center !important;
+        flex-direction: row !important;
+        flex-wrap: wrap !important;     /* 7个一换行 */
+        justify-content: flex-start !important;
+        gap: 2px !important;            /* 🔥左右间距压榨到 2 像素 */
+        row-gap: 2px !important;        /* 🔥【核心修复】上下行距极致缩小到 2 像素，彻底消除大空白！ */
+        width: 100% !important;
+        max-width: 350px !important;    /* 限制整体最大宽度，防止手机端拉伸变形 */
+        margin: 0 auto !important;
+        padding: 2px 0 !important;
     }
     
-    /* 三色波样式 */
-    .num-matrix-container .btn-red button { background: linear-gradient(135deg, #ff4d4d, #cc0000) !important; }
-    .num-matrix-container .btn-blue button { background: linear-gradient(135deg, #4da6ff, #0066cc) !important; }
-    .num-matrix-container .btn-green button { background: linear-gradient(135deg, #47d147, #009900) !important; }
-    /* 勾选高亮状态 */
-    .num-matrix-container .btn-selected button { 
-        background: linear-gradient(135deg, #ffd700, #ff8c00) !important; color: #1a1a1a !important; font-weight: 900 !important; border: 1.5px solid #ffffff !important; box-shadow: 0px 0px 4px #ffd700 !important; 
+    /* 原生数字球正圆立体高光 */
+    .html-ball-btn {
+        flex: 0 0 calc((100% - 12px) / 7) !important; /* 一行雷打不动卡死 7 个球 */
+        aspect-ratio: 1 / 1 !important;              /* 高宽1:1正圆 */
+        color: white !important;
+        font-size: 14px !important;
+        font-weight: bold !important;
+        border: none !important;
+        border-radius: 50% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        box-shadow: 1px 1px 2px rgba(0,0,0,0.15) !important;
+        cursor: pointer !important;
+        -webkit-tap-highlight-color: transparent !important;
     }
+    
+    /* 官方红蓝绿球色 */
+    .hb-red { background: linear-gradient(135deg, #ff4d4d, #cc0000) !important; }
+    .hb-blue { background: linear-gradient(135deg, #4da6ff, #0066cc) !important; }
+    .hb-green { background: linear-gradient(135deg, #47d147, #009900) !important; }
+    /* 选中高亮状态球 */
+    .hb-selected { background: linear-gradient(135deg, #ffd700, #ff8c00) !important; color: #1a1a1a !important; font-weight: 900 !important; border: 1.5px solid #ffffff !important; box-shadow: 0px 0px 5px #ffd700 !important; }
     
     .ball-container { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; margin-bottom: 4px; }
     .ball { width: 34px; height: 34px; line-height: 34px; border-radius: 50%; color: white; text-align: center; font-weight: bold; font-size: 13px; box-shadow: 1px 2px 4px rgba(0,0,0,0.15); }
@@ -95,10 +89,10 @@ def get_ball_style(num):
     if num in BLUE_BALLS: return "ball-blue"
     return "ball-green"
 
-def get_ball_color_class(num):
-    if num in RED_BALLS: return "btn-red"
-    if num in BLUE_BALLS: return "btn-blue"
-    return "btn-green"
+def get_html_ball_class(num):
+    if num in RED_BALLS: return "hb-red"
+    if num in BLUE_BALLS: return "hb-blue"
+    return "hb-green"
 
 # --- 初始化 Session State ---
 if 'wallet' not in st.session_state: st.session_state.wallet = 10000.0
@@ -173,50 +167,59 @@ for idx, tab_name in enumerate(tabs_list):
         st.markdown('</div>', unsafe_allow_html=True)
 st.markdown('</div>', unsafe_allow_html=True)
 
-# ----------------- 核心玩法区 -----------------
+# ----------------- 接口事件注入 -----------------
+click_event = st.query_params
 
-# 开启极度紧凑型号码盘专属隔离容器
-st.markdown('<div class="num-matrix-container">', unsafe_allow_html=True)
+if "click_ping" in click_event:
+    clicked_num = int(click_event["click_ping"])
+    if clicked_num in st.session_state.manual_ping: st.session_state.manual_ping.remove(clicked_num)
+    elif len(st.session_state.manual_ping) < 5: st.session_state.manual_ping.append(clicked_num)
+    st.query_params.clear()
+    st.rerun()
+
+if "click_te" in click_event:
+    clicked_num = int(click_event["click_te"])
+    if clicked_num in st.session_state.manual_te: st.session_state.manual_te.remove(clicked_num)
+    else: st.session_state.manual_te = [clicked_num]
+    st.query_params.clear()
+    st.rerun()
+
+if "click_one" in click_event:
+    clicked_num = int(click_event["click_one"])
+    if st.session_state.wallet < 50: st.error("❌ 模拟余额不足！")
+    else:
+        st.session_state.wallet -= 50
+        st.session_state.bet_history.append({"玩法": "一马中特", "所选号码": f"特码:[{clicked_num:02d}]", "单价": 50, "原始数据": {"ping": [], "te": clicked_num}, "状态": "等待开奖"})
+        st.toast(f"🎉 特码【{clicked_num:02d}】成功下注！")
+    st.query_params.clear()
+    st.rerun()
+
+# ----------------- 核心玩法区 (HTML极致密集无缝矩阵注入) -----------------
 
 # 1. 自选平特大厅
 if st.session_state.current_tab == "🔘 自选平特":
-    st.markdown("### 🟢 分离紧凑自选（5平码 + 1特码）")
+    st.markdown("### 🟢 分离自选（5平码 + 1特码）")
     st.info(f"🛒 篮子状态：平码【{len(st.session_state.manual_ping)}/5】 | 特码【{len(st.session_state.manual_te)}/1】")
 
-    with st.expander("🟠 点击收放 ——【5个平码正圆键盘】", expanded=True):
-        # 🔥【大升级：横向网格循环排序】让1-7在第一行，8-14在第二行横向排开
-        for row in range(7):
-            cols = st.columns(7)
-            for col in range(7):
-                num = row * 7 + col + 1  # 核心改变：修改索引计算公式，实现纯横向序列
-                if num <= 49:
-                    is_sel = num in st.session_state.manual_ping
-                    cls = "btn-selected" if is_sel else get_ball_color_class(num)
-                    lbl = f"{num}"
-                    st.markdown(f'<div class="{cls}">', unsafe_allow_html=True)
-                    if cols[col].button(lbl, key=f"p1_{num}"):
-                        if num in st.session_state.manual_ping: st.session_state.manual_ping.remove(num)
-                        elif len(st.session_state.manual_ping) < 5: st.session_state.manual_ping.append(num)
-                        st.rerun()
-                    st.markdown('</div>', unsafe_allow_html=True)
+    # 🔥【终极修复】剔除了所有 st.expander 容器，让两个纯 HTML 矩阵直接完美密密麻麻并排挨着！
+    st.markdown("**🟠 选 5 个【平码（正码）】：**")
+    html_ping_matrix = '<div class="html-grid-matrix">'
+    for num in range(1, 50):
+        is_sel = num in st.session_state.manual_ping
+        cls = "hb-selected" if is_sel else get_html_ball_class(num)
+        html_ping_matrix += f'<a href="?click_ping={num}" target="_self" class="html-ball-btn {cls}" style="text-decoration:none;">{num}</a>'
+    st.markdown(html_ping_matrix + '</div>', unsafe_allow_html=True)
 
-    with st.expander("🔵 点击收放 ——【1个特码正圆键盘】", expanded=True):
-        # 🔥【大升级：横向网格循环排序】特码键盘同步修改为横向序列
-        for row in range(7):
-            cols = st.columns(7)
-            for col in range(7):
-                num = row * 7 + col + 1  # 纯横向顺序
-                if num <= 49:
-                    is_sel = num in st.session_state.manual_te
-                    cls = "btn-selected" if is_sel else get_ball_color_class(num)
-                    lbl = f"{num}"
-                    st.markdown(f'<div class="{cls}">', unsafe_allow_html=True)
-                    if cols[col].button(lbl, key=f"t1_{num}"):
-                        if num in st.session_state.manual_te: st.session_state.manual_te.remove(num)
-                        else: st.session_state.manual_te = [num]
-                        st.rerun()
-                    st.markdown('</div>', unsafe_allow_html=True)
+    st.write("")
+    st.markdown("**🔵 选 1 个【特码（特别号码）】：**")
+    html_te_matrix = '<div class="html-grid-matrix">'
+    for num in range(1, 50):
+        is_sel = num in st.session_state.manual_te
+        cls = "hb-selected" if is_sel else get_html_ball_class(num)
+        html_te_matrix += f'<a href="?click_te={num}" target="_self" class="html-ball-btn {cls}" style="text-decoration:none;">{num}</a>'
+    st.markdown(html_te_matrix + '</div>', unsafe_allow_html=True)
 
+    st.write("")
     col_o1, col_o2 = st.columns(2)
     if col_o1.button("🗑️ 清空篮子", key="clear_m"):
         st.session_state.manual_ping, st.session_state.manual_te = [], []
@@ -238,25 +241,12 @@ if st.session_state.current_tab == "🔘 自选平特":
 
 # 2. 一马中特大厅
 elif st.session_state.current_tab == "🎯 一马中特":
-    st.markdown("### 🎯 全彩正圆键盘：一马中特单挑（每注$50）")
-    # 🔥【大升级：横向网格循环排序】一马中特键盘同步修改为横向序列
-    for row in range(7):
-        cols = st.columns(7)
-        for col in range(7):
-            num = row * 7 + col + 1  # 纯横向顺序
-            if num <= 49:
-                st.markdown(f'<div class="{get_ball_color_class(num)}">', unsafe_allow_html=True)
-                if cols[col].button(f"{num}", key=f"one_match_{num}"):
-                    if st.session_state.wallet < 50: st.error("❌ 模拟余额不足！")
-                    else:
-                        st.session_state.wallet -= 50
-                        st.session_state.bet_history.append({
-                            "玩法": "one_match", "所选号码": f"特码:[{num:02d}]", 
-                            "单价": 50, "原始数据": {"ping": [], "te": num}, "状态": "等待开奖"
-                        })
-                        st.success(f"🎉 特码【{num:02d}】下注成功！")
-                        st.rerun()
-                st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown("### 🎯 巧克力正圆网格：一马中特单挑（每注$50）")
+    html_one_matrix = '<div class="html-grid-matrix">'
+    for num in range(1, 50):
+        cls = get_html_ball_class(num)
+        html_one_matrix += f'<a href="?click_one={num}" target="_self" class="html-ball-btn {cls}" style="text-decoration:none;">{num}</a>'
+    st.markdown(html_one_matrix + '</div>', unsafe_allow_html=True)
 
 # 3. 标准复式大厅
 elif st.session_state.current_tab == "📊 标准复式":
@@ -281,7 +271,7 @@ elif st.session_state.current_tab == "📊 标准复式":
                 "玩法": f"复式({st.session_state.count_f}码)", "所选号码": str(f_nums), 
                 "单价": cost_f, "原始数据": {"ping": f_nums, "te": None}, "状态": "等待开奖"
             })
-            st.success(f"🎉 复式注单生成成功！")
+            st.success("🎉 复式注单生成成功！")
             st.rerun()
 
 # 4. 黄金胆拖大厅
@@ -318,15 +308,12 @@ elif st.session_state.current_tab == "🎲 黄金胆拖":
             st.success("🎉 胆拖组合下注成功！")
             st.rerun()
 
-st.markdown('</div>', unsafe_allow_html=True) # 关闭号码盘隔离容器
-
 # --- 模拟账单存根与一键派彩系统 ---
 st.divider()
 st.header("🧾 模拟投注账单存根总账")
 
 if st.session_state.bet_history:
     col_pay1, col_pay2 = st.columns(2)
-    
     if col_pay1.button("🔥 一键对奖·自动派彩", key="auto_payout_engine"):
         with st.spinner("碰撞计算中..."):
             time.sleep(0.5)
@@ -336,21 +323,17 @@ if st.session_state.bet_history:
             for bet in st.session_state.bet_history:
                 if bet["状态"] == "等待开奖":
                     raw = bet["原始数据"]
-                    if bet["玩法"] in ["手选单式", "one_match"]:
+                    if bet["玩法"] in ["手选单式", "一马中特"]:
                         match_m = len(set(raw["ping"]) & set(win_main))
                         match_s = (raw["te"] == win_special)
                         
-                        if bet["玩法"] == "one_match" and match_s:
-                            st.session_state.wallet += 2000.0
-                            bet["状态"] = "🎉 斩获特码！+$2000"
-                        elif match_m == 6: st.session_state.wallet += 50000.0; bet["状态"] = "🎉 头奖！+$50000"
+                        if match_m == 6: st.session_state.wallet += 50000.0; bet["状态"] = "🎉 头奖！+$50000"
                         elif match_m == 3: st.session_state.wallet += 40.0; bet["状态"] = "🎉 七奖！+$40"
+                        elif match_s: st.session_state.wallet += 2000.0 if bet["玩法"] == "一马中特" else 20.0; bet["状态"] = "🎉 中特码！派彩"
                         else: bet["状态"] = "❌ 未中奖"
                     else:
                         match_any = len(set(raw["ping"]) & set(win_main))
-                        if match_any >= 3:
-                            st.session_state.wallet += 160.0
-                            bet["状态"] = f"🎉 中码！+$160"
+                        if match_any >= 3: st.session_state.wallet += 160.0; bet["状态"] = f"🎉 中码！+$160"
                         else: bet["状态"] = "❌ 未中奖"
             st.success("💰 账本全量对奖派彩结算完毕！")
             st.rerun()
@@ -362,18 +345,16 @@ if st.session_state.bet_history:
     df_history = pd.DataFrame(st.session_state.bet_history)
     st.dataframe(df_history, use_container_width=True, hide_index=True)
 else:
-    st.caption("📂 暂无下注记录。请在上方纯按钮大厅选号并提交。")
+    st.caption("📂 暂无下注记录。")
 
 # --- 📊 50期大数据图表看板 ---
 st.divider()
 st.header("📊 50期大数据·正码热度排行榜")
-
 hot_counts = {i: 0 for i in range(1, 50)}
 for draw in history_50:
-    for n in draw["numbers"]:
-        hot_counts[n] += 1
+    for n in draw["numbers"]: hot_counts[n] += 1
 df_chart = pd.DataFrame.from_dict(hot_counts, orient='index', columns=['50期出号频次'])
 st.bar_chart(df_chart)
 
 st.divider()
-st.caption("⚠️ 声明：本系统已开启官方网络源自动同步。开奖具备纯物理随机性，测算与派彩模块纯属模拟数字游戏，请务必理性参与。")
+st.caption("⚠️ 声明：本系统已开启官方网络源自动同步。模拟游戏纯属公益娱乐工具。")
