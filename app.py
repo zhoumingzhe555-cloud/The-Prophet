@@ -1,95 +1,98 @@
 import streamlit as st
 import random
-import time
 import math
 import pandas as pd
 import requests
-from datetime import datetime
 
 # --- 页面配置 ---
-st.set_page_config(page_title="预言家大满贯盘", page_icon="🔮", layout="centered")
+st.set_page_config(page_title="预言家娱乐模拟盘", page_icon="🔮", layout="centered")
 
-# --- 🎯 v13.0 原生高阶全触控与极致紧凑球座 UI 样式表 ---
+# --- 🎯 v15.0 终极全原生像素级紧凑正圆巧克力矩阵样式表 ---
 st.markdown("""
     <style>
-    .block-container { padding-top: 0.4rem; padding-bottom: 0.4rem; padding-left: 0.2rem; padding-right: 0.2rem; }
+    /* 极致挤压手机端四周无用边距 */
+    .block-container { padding-top: 0.3rem !important; padding-bottom: 0.3rem !important; padding-left: 0.2rem !important; padding-right: 0.2rem !important; }
     
-    /* 核心行动大按钮 */
-    .stButton>button { 
+    /* 核心行动大按钮（确认下注、对奖、充值） */
+    div[data-testid="stVerticalBlock"] .stButton>button { 
         background: linear-gradient(135deg, #4b0082, #8a2be2) !important; 
         color: white !important; border-radius: 25px !important; width: 100% !important; height: 44px !important; 
         font-size: 15px !important; font-weight: bold !important; border: none !important;
         box-shadow: 0px 4px 10px rgba(138,43,226,0.3);
     }
     
-    /* 原生 HTML 玩法导航大厅卡片样式 */
-    .html-nav-container { display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; gap: 3px !important; width: 100% !important; max-width: 360px !important; margin: 0 auto 10px auto !important; padding: 0 !important; }
-    .html-nav-btn {
-        flex: 1 1 0% !important; height: 38px !important; border-radius: 8px !important;
-        background: linear-gradient(135deg, #2c3e50, #1a252f) !important; color: #cccccc !important;
-        font-size: 11px !important; font-weight: bold !important; display: flex !important; align-items: center !important; justify-content: center !important;
-        border: 1px solid #34495e !important; text-decoration: none !important; cursor: pointer !important; -webkit-tap-highlight-color: transparent !important;
+    /* 🔥【绝杀技：强控手机端所有列容器必须横排，铁板一块雷打不动】 */
+    div[data-testid="stHorizontalBlock"] {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        gap: 3px !important;            /* 水平间距压缩 */
+        margin-top: 0px !important;
+        margin-bottom: 2px !important;  /* 纵向间距压缩至 2 像素，消除大白区 */
+        padding: 0px !important;
+        width: 100% !important;
     }
-    .html-nav-active { background: linear-gradient(135deg, #ffd700, #ff8c00) !important; color: #1a1a1a !important; border: 1px solid #ffffff !important; font-weight: 900 !important; box-shadow: 0px 0px 6px rgba(255,215,0,0.4) !important; }
-    
-    /* 原生 HTML 1-49 巧克力无缝矩阵 */
-    .html-grid-matrix { display: flex !important; flex-direction: row !important; flex-wrap: wrap !important; justify-content: flex-start !important; gap: 2px !important; row-gap: 4px !important; width: 100% !important; max-width: 350px !important; margin: 0 auto !important; padding: 2px 0 !important; }
-    
-    /* 精调带次数的双层正圆球座 */
-    .html-ball-btn {
-        flex: 0 0 calc((100% - 12px) / 7) !important; aspect-ratio: 1 / 1 !important; color: white !important; font-weight: bold !important; border: none !important; border-radius: 50% !important;
-        display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; box-shadow: 1px 1px 2px rgba(0,0,0,0.15) !important; cursor: pointer !important; -webkit-tap-highlight-color: transparent !important;
+    div[data-testid="stHorizontalBlock"] > div {
+        flex: 1 1 0% !important; min-width: 0 !important; padding: 0 !important; margin: 0 !important;
     }
-    .ball-num { font-size: 13px !important; line-height: 1.1 !important; margin-top: 2px; }
-    .ball-count { font-size: 8px !important; font-weight: normal !important; opacity: 0.85 !important; line-height: 1.1 !important; }
     
-    .hb-red { background: linear-gradient(135deg, #ff4d4d, #cc0000) !important; }
-    .hb-blue { background: linear-gradient(135deg, #4da6ff, #0066cc) !important; }
-    .hb-green { background: linear-gradient(135deg, #47d147, #009900) !important; }
-    
-    /* 已选勾选后的金黄球状态 */
-    .hb-selected { 
-        background: linear-gradient(135deg, #ffd700, #ff8c00) !important; 
-        color: #1a1a1a !important; 
-        font-weight: 900 !important; 
-        border: 1.5px solid #ffffff !important; 
-        box-shadow: 0px 0px 6px #ffd700 !important; 
+    /* 🔢 将 1-49 所有原生按钮强行雕刻成完美正圆彩票球体 */
+    .num-ball-wrap button {
+        color: white !important;
+        font-weight: bold !important;
+        font-size: 15px !important;
+        border: none !important;
+        border-radius: 50% !important;   /* 完美正圆 */
+        width: 100% !important;
+        aspect-ratio: 1 / 1 !important;  /* 高宽死锁 1:1 */
+        padding: 0px !important;
+        margin: 0px auto !important;
+        box-shadow: 1px 1px 3px rgba(0,0,0,0.15) !important;
+        display: flex !important; align-items: center !important; justify-content: center !important;
     }
-    .hb-selected .ball-count { color: #222 !important; font-weight: bold !important; }
     
-    /* 置顶巨型开奖号布局 */
-    .ball-container { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 3px; margin-bottom: 5px; justify-content: center; }
-    .ball { width: 44px; height: 44px; line-height: 44px; border-radius: 50%; color: white; text-align: center; font-weight: bold; font-size: 16px; box-shadow: 1px 3px 6px rgba(0,0,0,0.2); }
-    .ball-red { background: linear-gradient(135deg, #ff4d4d, #cc0000); }
-    .ball-blue { background: linear-gradient(135deg, #4da6ff, #0066cc); }
-    .ball-green { background: linear-gradient(135deg, #47d147, #009900); }
+    /* 官方标准的红、蓝、绿三色高光 */
+    .ball-r button { background: linear-gradient(135deg, #ff4d4d, #cc0000) !important; }
+    .ball-b button { background: linear-gradient(135deg, #4da6ff, #0066cc) !important; }
+    .ball-g button { background: linear-gradient(135deg, #47d147, #009900) !important; }
     
-    .wallet-card-mini { background: linear-gradient(135deg, #111, #222); color: #ffd700; padding: 8px; border-radius: 8px; text-align: center; font-weight: bold; font-size: 13px; border: 1px solid #333; }
-    .rank-badge { background: #8a2be2; color: white; padding: 1px 6px; border-radius: 8px; font-size: 10px; margin-left: 3px; }
+    /* 勾选高亮状态：蜕变为奢华金黄立体球 */
+    .ball-s button {
+        background: linear-gradient(135deg, #ffd700, #ff8c00) !important;
+        color: #1a1a1a !important;
+        font-weight: 900 !important;
+        border: 2px solid #ffffff !important;
+        box-shadow: 0px 0px 5px #ffd700 !important;
+    }
+    
+    /* 置顶巨型开奖号码盘样式 */
+    .draw-container { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 2px; margin-bottom: 4px; justify-content: center; }
+    .draw-ball { width: 40px; height: 40px; line-height: 40px; border-radius: 50%; color: white; text-align: center; font-weight: bold; font-size: 15px; box-shadow: 1px 2px 5px rgba(0,0,0,0.2); }
+    .draw-red { background: linear-gradient(135deg, #ff4d4d, #cc0000); }
+    .draw-blue { background: linear-gradient(135deg, #4da6ff, #0066cc); }
+    .draw-green { background: linear-gradient(135deg, #47d147, #009900); }
+    
+    .wallet-card-mini { background: linear-gradient(135deg, #111, #222); color: #ffd700; padding: 7px; border-radius: 8px; text-align: center; font-weight: bold; font-size: 13px; border: 1px solid #333; }
+    .rank-badge { background: #8a2be2; color: white; padding: 1px 5px; border-radius: 6px; font-size: 10px; margin-left: 3px; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- 官方49码球色划分 ---
+# --- 官方49码球色严格定义 ---
 RED_BALLS = [1, 2, 7, 8, 12, 13, 18, 19, 23, 24, 29, 30, 34, 35, 40, 45, 46]
 BLUE_BALLS = [3, 4, 9, 10, 14, 15, 20, 25, 26, 31, 36, 37, 41, 42, 47, 48]
 GREEN_BALLS = [5, 6, 11, 16, 17, 21, 22, 27, 28, 32, 33, 38, 39, 43, 44, 49]
 
 def get_ball_style(num):
-    if num in RED_BALLS: return "ball-red"
-    if num in BLUE_BALLS: return "ball-blue"
-    return "ball-green"
+    if num in RED_BALLS: return "draw-red"
+    if num in BLUE_BALLS: return "draw-blue"
+    return "draw-green"
 
-def get_html_ball_class(num):
-    if num in RED_BALLS: return "hb-red"
-    if num in BLUE_BALLS: return "hb-blue"
-    return "hb-green"
+def get_ball_color_class(num):
+    if num in RED_BALLS: return "ball-r"
+    if num in BLUE_BALLS: return "ball-b"
+    return "ball-g"
 
-def get_wave_name(num):
-    if num in RED_BALLS: return "红波"
-    if num in BLUE_BALLS: return "蓝波"
-    return "绿波"
-
-# --- 初始化 Session State ---
+# --- 初始化 Session State 核心数据锁 ---
 if 'wallet' not in st.session_state: st.session_state.wallet = 10000.0
 if 'bet_history' not in st.session_state: st.session_state.bet_history = []
 if 'manual_ping' not in st.session_state: st.session_state.manual_ping = []
@@ -115,74 +118,26 @@ def fetch_live_data_50():
                     "issue": item.get("issue"),
                     "date": item.get("open_time")[:10],
                     "numbers": [int(x) for x in item.get("numbers")[:6]],
-                    "special": int(item.get("numbers"))
+                    "special": int(item.get("numbers")[6])
                 })
             if live_data: return live_data
     except Exception:
         pass
-    # 坚固仿真数据备用
     return [{"issue": "26/051", "date": "2026-05-14", "numbers": [1, 14, 19, 23, 27, 34], "special": 49}]
 
 history_50 = fetch_live_data_50()
 latest_draw = history_50[0]
 
-# 🔥 统计频次
-freq_map = {i: 0 for i in range(1, 50)}
-for draw in history_50:
-    for n in draw["numbers"] + [draw["special"]]:
-        if n in freq_map: freq_map[n] += 1
+# ----------------- 📡【第一步：官方开奖看板高能置顶】 -----------------
+st.write(f"📡 **官方实时同步**：第 **{latest_draw['issue']}** 期 ({latest_draw['date']})")
 
-# ----------------- 📡【核心修复：期数与日期公告重回置顶位置】 -----------------
-st.write(f"📡 **官方同步最新开奖**：第 **{latest_draw['issue']}** 期 ({latest_draw['date']})")
-
-ball_html = '<div class="ball-container">'
+ball_html = '<div class="draw-container">'
 for num in latest_draw['numbers']:
-    ball_html += f'<div class="ball {get_ball_style(num)}">{num}</div>'
-ball_html += f'<div class="ball {get_ball_style(latest_draw["special"])}">{latest_draw["special"]}</div></div>'
+    ball_html += f'<div class="draw-ball {get_ball_style(num)}">{num}</div>'
+ball_html += f'<div class="draw-ball {get_ball_style(latest_draw["special"])}">{latest_draw["special"]}</div></div>'
 st.markdown(ball_html, unsafe_allow_html=True)
 
-# 50期历史开奖流水账单
-with st.expander(f"📅 点击展开/查阅全网最新 {len(history_50)} 期开奖真实历史流水记录"):
-    for draw in history_50:
-        st.markdown(f"""
-        <div style="padding: 5px 0; border-bottom: 1px solid #f1f5f9; font-size:13px;">
-            <span style="color:#4b0082; font-weight:bold;">第{draw['issue']}期</span> ({draw['date']}) 
-            正码: {', '.join(f'{n:02d}' for n in draw['numbers'])} | 
-            <span style="color:#dc143c; font-weight:bold;">特别号: {draw['special']:02d}</span> ({get_wave_name(draw['special'])})
-        </div>
-        """, unsafe_allow_html=True)
-
-st.divider()
-
-# ----------------- 📡 高级接口事件捕获系统 -----------------
-click_event = st.query_params
-
-if "set_tab" in click_event:
-    st.session_state.current_tab = str(click_event.get("set_tab"))
-    st.query_params.clear(); st.rerun()
-
-if "click_ping" in click_event:
-    clicked_num = int(click_event.get("click_ping"))
-    if clicked_num in st.session_state.manual_ping: st.session_state.manual_ping.remove(clicked_num)
-    elif len(st.session_state.manual_ping) < 5: st.session_state.manual_ping.append(clicked_num)
-    st.query_params.clear(); st.rerun()
-
-if "click_te" in click_event:
-    clicked_num = int(click_event.get("click_te"))
-    if clicked_num in st.session_state.manual_te: st.session_state.manual_te.remove(clicked_num)
-    else: st.session_state.manual_te = [clicked_num]
-    st.query_params.clear(); st.rerun()
-
-if "click_one" in click_event:
-    clicked_num = int(click_event["click_one"])
-    if st.session_state.wallet < 50: st.error("❌ 模拟余额不足！")
-    else:
-        st.session_state.wallet -= 50
-        st.session_state.bet_history.append({"玩法": "一马中特", "所选号码": f"特码:[{clicked_num:02d}]", "单价": 50, "原始数据": {"ping": [], "te": clicked_num}, "状态": "等待开奖"})
-        st.toast(f"🎉 特码【{clicked_num:02d}】成功下注！")
-    st.query_params.clear(); st.rerun()
-
-# --- 🪙 资产监视挂件 ---
+# ----------------- 🪙【第二步：资产钱包小挂件】 -----------------
 def get_player_rank(balance):
     if balance >= 50000: return "🏆神算"
     if balance >= 20000: return "💎金手"
@@ -194,57 +149,74 @@ col_w1, col_w2 = st.columns(2)
 with col_w1:
     st.markdown(f'<div class="wallet-card-mini">🪙 余额: ${st.session_state.wallet:,.0f} <span class="rank-badge">{current_rank}</span></div>', unsafe_allow_html=True)
 with col_w2:
-    if st.button("🧧 充值 $5000 体验金", key="top_up_v11"):
+    if st.button("🧧 充值 $5000 体验金", key="top_up_v15"):
         st.session_state.wallet += 5000.0
         st.rerun()
 
-# --- 🛠️ 原生 HTML 玩法大厅药丸导航条 ---
-tabs_map = {"自选平特": "自选平特", "一马中特": "一马中特", "标准复式": "标准复式", "黄金胆拖": "黄金胆拖"}
-html_nav = '<div class="html-nav-container">'
-for key_name, display_name in tabs_map.items():
-    is_active = (st.session_state.current_tab == key_name)
-    active_cls = "html-nav-active" if is_active else ""
-    html_nav += f'<a href="?set_tab={key_name}" target="_self" class="html-nav-btn {active_cls}" style="text-decoration:none;">{display_name}</a>'
-html_nav += '</div>'
-st.markdown(html_nav, unsafe_allow_html=True)
+st.write("")
 
-# ----------------- 核心玩法区 -----------------
-st.markdown('<div class="num-matrix-container">', unsafe_allow_html=True)
+# ----------------- 🛠️【第三步：纯原生药丸长条玩法大厅】 -----------------
+nav_cols = st.columns(4)
+tabs_list = ["自选平特", "一马中特", "标准复式", "黄金胆拖"]
 
+for idx, tab_name in enumerate(tabs_list):
+    is_active = (st.session_state.current_tab == tab_name)
+    display_label = f"⭐ {tab_name}" if is_active else tab_name
+    with nav_cols[idx]:
+        # 如果是选中项，原生调用高亮
+        if st.button(display_label, key=f"nav_tab_{idx}"):
+            st.session_state.current_tab = tab_name
+            st.rerun()
+
+st.divider()
+
+# ----------------- 🎰【第四步：核心玩法区域分流】 -----------------
+
+# 玩法 A：分离自选平特大厅
 if st.session_state.current_tab == "自选平特":
-    st.markdown("### 🟢 分离自选（5平码 + 1特码）")
-    st.info(f"🛒 篮子状态：平码【{len(st.session_state.manual_ping)}/5】 | 特码【{len(st.session_state.manual_te)}/1】")
+    st.markdown("### 🟢 平特自选（5平码 + 1特码）")
+    st.info(f"🛒 选号篮子：平码【{len(st.session_state.manual_ping)}/5】 | 特码【{len(st.session_state.manual_te)}/1】")
     
-    st.markdown("**🟠 选择 5 个【平码（正码）】：**")
-    html_ping_matrix = '<div class="html-grid-matrix">'
-    for num in range(1, 50):
-        is_sel = num in st.session_state.manual_ping
-        cls = "hb-selected" if is_sel else get_html_ball_class(num)
-        display_num = f"{num} ✔" if is_sel else f"{num}"
-        display_count = f"{freq_map[num]}次"
-        
-        html_ping_matrix += f"""
-        <a href="?click_ping={num}" target="_self" class="html-ball-btn {cls}" style="text-decoration:none;">
-            <span class="ball-num">{display_num}</span>
-            <span class="ball-count">{display_count}</span>
-        </a>"""
-    st.markdown(html_ping_matrix + '</div>', unsafe_allow_html=True)
+    # 区域1：平码巧克力矩阵
+    st.markdown("**🟠 选 5 个【平码（正码）】：**")
+    st.markdown('<div class="num-ball-wrap">', unsafe_allow_html=True)
+    for row in range(7):
+        cols = st.columns([1,1,1,1,1,1,1]) # 极致等比铁板死锁横排
+        for col in range(7):
+            num = row * 7 + col + 1
+            if num <= 49:
+                is_sel = num in st.session_state.manual_ping
+                cls = "ball-s" if is_sel else get_ball_color_class(num)
+                lbl = f"{num}✔" if is_sel else f"{num}"
+                with cols[col]:
+                    st.markdown(f'<div class="{cls}">', unsafe_allow_html=True)
+                    if st.button(lbl, key=f"ping_btn_{num}"):
+                        if num in st.session_state.manual_ping: st.session_state.manual_ping.remove(num)
+                        elif len(st.session_state.manual_ping) < 5: st.session_state.manual_ping.append(num)
+                        st.rerun()
+                    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
     st.write("")
-    st.markdown("**🔵 选择 1 个【特码（特别号码）】：**")
-    html_te_matrix = '<div class="html-grid-matrix">'
-    for num in range(1, 50):
-        is_sel = num in st.session_state.manual_te
-        cls = "hb-selected" if is_sel else get_html_ball_class(num)
-        display_num = f"{num} ★" if is_sel else f"{num}"
-        display_count = f"{freq_map[num]}次"
-        
-        html_te_matrix += f"""
-        <a href="?click_te={num}" target="_self" class="html-ball-btn {cls}" style="text-decoration:none;">
-            <span class="ball-num">{display_num}</span>
-            <span class="ball-count">{display_count}</span>
-        </a>"""
-    st.markdown(html_te_matrix + '</div>', unsafe_allow_html=True)
+    # 区域2：特码巧克力矩阵
+    st.markdown("**🔵 选 1 个【特码（特别号码）】：**")
+    st.markdown('<div class="num-ball-wrap">', unsafe_allow_html=True)
+    for row in range(7):
+        cols = st.columns([1,1,1,1,1,1,1])
+        for col in range(7):
+            num = row * 7 + col + 1
+            if num <= 49:
+                is_sel = num in st.session_state.manual_te
+                cls = "ball-s" if is_sel else get_ball_color_class(num)
+                lbl = f"{num}★" if is_sel else f"{num}"
+                with cols[col]:
+                    st.markdown(f'<div class="{cls}">', unsafe_allow_html=True)
+                    if st.button(lbl, key=f"te_btn_{num}"):
+                        if num in st.session_state.manual_te: st.session_state.manual_te.remove(num)
+                        else: st.session_state.manual_te = [num]
+                        st.rerun()
+                    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
     st.write("")
     col_o1, col_o2 = st.columns(2)
@@ -267,19 +239,28 @@ if st.session_state.current_tab == "自选平特":
             st.success("🎉 下注成功！已同步录入底部总账记录。")
             st.rerun()
 
+# 玩法 B：一马中特大厅
 elif st.session_state.current_tab == "一马中特":
-    st.markdown("### 🎯 巧克力正圆网格：一马中特单挑（每注$50）")
-    html_one_matrix = '<div class="html-grid-matrix">'
-    for num in range(1, 50):
-        cls = get_html_ball_class(num)
-        display_count = f"{freq_map[num]}次"
-        html_one_matrix += f"""
-        <a href="?click_one={num}" target="_self" class="html-ball-btn {cls}" style="text-decoration:none;">
-            <span class="ball-num">{num}</span>
-            <span class="ball-count">{display_count}</span>
-        </a>"""
-    st.markdown(html_one_matrix + '</div>', unsafe_allow_html=True)
+    st.markdown("### 🎯 一马中特单挑（每注$50）")
+    st.markdown('<div class="num-ball-wrap">', unsafe_allow_html=True)
+    for row in range(7):
+        cols = st.columns([1,1,1,1,1,1,1])
+        for col in range(7):
+            num = row * 7 + col + 1
+            if num <= 49:
+                with cols[col]:
+                    st.markdown(f'<div class="{get_ball_color_class(num)}">', unsafe_allow_html=True)
+                    if st.button(f"{num}", key=f"one_match_{num}"):
+                        if st.session_state.wallet < 50: st.error("❌ 模拟余额不足！")
+                        else:
+                            st.session_state.wallet -= 50
+                            st.session_state.bet_history.append({"玩法": "一马中特", "所选号码": f"特码:[{num:02d}]", "单价": 50, "原始数据": {"ping": [], "te": num}, "状态": "等待开奖"})
+                            st.success(f"🎉 特码【{num:02d}】成功下注！")
+                            st.rerun()
+                    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
+# 玩法 C：标准复式
 elif st.session_state.current_tab == "标准复式":
     st.markdown("### 📊 标准复式加减盘（每注$10）")
     col_f_sub, col_f_val, col_f_add = st.columns(3)
@@ -299,6 +280,7 @@ elif st.session_state.current_tab == "标准复式":
             st.session_state.bet_history.append({"玩法": f"复式({st.session_state.count_f}码)", "所选号码": str(f_nums), "单价": cost_f, "原始数据": {"ping": f_nums, "te": None}, "状态": "等待开奖"})
             st.success("🎉 复式注单生成成功！"); st.rerun()
 
+# 玩法 D：黄金胆拖
 elif st.session_state.current_tab == "黄金胆拖":
     st.markdown("### 🎲 胆拖组合盘（每注$10）")
     st.write("1. 调节【胆码】个数 (1-5个)：")
@@ -325,8 +307,6 @@ elif st.session_state.current_tab == "黄金胆拖":
             st.session_state.bet_history.append({"玩法": "胆拖组合", "所选号码": f"胆:{dans} 拖:{tuos}", "单价": cost_dt, "原始数据": {"ping": tuos, "te": dans}, "状态": "等待开奖"})
             st.success("🎉 胆拖组合下注成功！"); st.rerun()
 
-st.markdown('</div>', unsafe_allow_html=True)
-
 # --- 模拟账单存根与一键派彩系统 ---
 st.divider()
 st.header("🧾 模拟投注账单存根总账")
@@ -335,7 +315,6 @@ if st.session_state.bet_history:
     col_pay1, col_pay2 = st.columns(2)
     if col_pay1.button("🔥 一键对奖·自动派彩", key="auto_payout_engine"):
         with st.spinner("碰撞计算中..."):
-            time.sleep(0.5)
             win_main = latest_draw["numbers"]
             win_special = latest_draw["special"]
             win_sum = 0
@@ -358,7 +337,7 @@ if st.session_state.bet_history:
                         if match_any >= 3: st.session_state.wallet += 160.0; win_sum += 160; bet["状态"] = f"🎉 中码！+$160"
                         else: bet["状态"] = "❌ 未中奖"
             
-            st.session_state.last_win_msg = f"🔮【预言家喜报】战报：本轮结算斩获模拟金 HK$ {win_sum:,.0f}！💰 当前荣誉资产：HK$ {st.session_state.wallet:,.0f}！🔥"
+            st.session_state.last_win_msg = f"🔮【预言家喜报】本轮结算结算斩获模拟金 HK$ {win_sum:,.0f}！💰 当前总资产：HK$ {st.session_state.wallet:,.0f}！🔥"
             st.rerun()
             
     if col_pay2.button("🗑️ 清空账本历史记录", key="clear_all_v11"):
@@ -374,8 +353,12 @@ if st.session_state.bet_history:
 else:
     st.caption("📂 暂无下注记录。")
 
-# --- 大数据直方图 ---
-st.divider()
-st.header("📊 50期正码热度排行榜")
-df_chart = pd.DataFrame(pd.Series(freq_map), columns=['50期出号频次'])
-st.bar_chart(df_chart)
+# --- 📅 历史流水对账明细 ---
+with st.expander(f"📅 点击展开/查阅全网最新 50 期开奖真实历史流水记录"):
+    for draw in history_50:
+        st.markdown(f"""
+        <div style="padding: 5px 0; border-bottom: 1px solid #f1f5f9; font-size:13px;">
+            <span style="color:#4b0082; font-weight:bold;">第{draw['issue']}期</span> ({draw['date']}) 
+            正码: {', '.join(f'{n:02d}' for n in draw['numbers'])} | <span style="color:#dc143c; font-weight:bold;">特别号: {draw['special']:02d}</span>
+        </div>
+        """, unsafe_allow_html=True)
