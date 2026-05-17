@@ -89,7 +89,8 @@ def fetch_live_data():
         url = "https://cpdata.io"
         response = requests.get(url, timeout=5)
         if response.status_code == 200:
-            item = response.json().get("data", [0])[0]
+            res_json = response.json()
+            item = res_json.get("data", [])[0]
             return {"issue": item.get("issue"), "date": item.get("open_time")[:10], "numbers": [int(x) for x in item.get("numbers")[:6]], "special": int(item.get("numbers")[6])}
     except Exception:
         pass
@@ -126,55 +127,47 @@ st.divider()
 st.subheader("📝 请选择模拟投注大厅")
 bet_tabs = st.tabs(["🔘 实体按钮点号盘", "📊 专业复式盘", "📌 智能机选盘"])
 
-# 1. 核心大重构：实体按钮单选点号盘
-with bet_tabs:
+# 1. 核心大重构：【修复处：加上了 [0] 索引】
+with bet_tabs[0]:
     st.markdown("### 🟢 按钮式方阵精准点号")
     st.caption("请在下方 1-49 数字矩阵中一个一个点击。系统将优先吸入 5 个平码，最后吸入 1 个特码。")
     
     bet_price = st.radio("自选下注单价", ["全注 ($10)", "半注 ($5)"], horizontal=True, key="p_manual")
     cost_manual = 10 if "全注" in bet_price else 5
 
-    # 显示当前的勾选篮子数据
     st.markdown("#### 🛒 您的选号篮子状态：")
     col_basket1, col_basket2 = st.columns(2)
     col_basket1.markdown(f"🟠 **已选平码 (5个)：** `{st.session_state.manual_ping}`")
     col_basket2.markdown(f"🔵 **已选特码 (1个)：** `{st.session_state.manual_te}`")
 
-    # 1-49 按钮方阵渲染逻辑 (每行7个，共7行)
     st.markdown("#### 🔢 1-49 摇奖点号区")
     for row in range(7):
         cols = st.columns(7)
         for col in range(7):
             num = row * 7 + col + 1
             if num <= 49:
-                # 动态判断按钮显示后缀，增加视觉友好度
                 btn_label = f"{num:02d}"
                 if num in st.session_state.manual_ping:
                     btn_label = f"{num:02d} 🟠"
                 elif num in st.session_state.manual_te:
                     btn_label = f"{num:02d} 🔵"
                 
-                # 触发单个数字按钮的点击机制
                 if cols[col].button(btn_label, key=f"btn_num_{num}"):
-                    # 规则1：如果选过了，再次点击代表取消该号码
                     if num in st.session_state.manual_ping:
                         st.session_state.manual_ping.remove(num)
                         st.rerun()
                     elif num in st.session_state.manual_te:
                         st.session_state.manual_te.remove(num)
                         st.rerun()
-                    # 规则2：优先填满5个平码
                     elif len(st.session_state.manual_ping) < 5:
                         st.session_state.manual_ping.append(num)
                         st.rerun()
-                    # 规则3：平码满了，填1个特码
                     elif len(st.session_state.manual_te) < 1:
                         st.session_state.manual_te.append(num)
                         st.rerun()
                     else:
                         st.error("⚠️ 篮子已满！若想换号，请先点击下方的清空按钮。")
 
-    # 功能辅助按钮
     col_op1, col_op2 = st.columns(2)
     if col_op1.button("🗑️ 清空当前选号重新选"):
         st.session_state.manual_ping = []
@@ -189,26 +182,24 @@ with bet_tabs:
         elif st.session_state.wallet < cost_manual:
             st.error("❌ 提交失败：您的虚拟体验金不足！")
         else:
-            # 扣款结算并打印票根
             st.session_state.wallet -= cost_manual
             sorted_ping = sorted(st.session_state.manual_ping)
-            final_te = st.session_state.manual_te[0]
+            final_te = st.session_state.manual_te
             
-            receipt_code = f"平:{sorted_ping} | 特:[{final_te}]"
+            receipt_code = f"平:{sorted_ping} | 特:{final_te}"
             st.session_state.bet_history.append({
                 "时间": datetime.now().strftime("%H:%M:%S"),
                 "玩法": "按钮自选(5平1特)",
                 "所选号码": receipt_code,
                 "模拟下注金额": f"${cost_manual}"
             })
-            # 自动清空篮子方便下一注下注
             st.session_state.manual_ping = []
             st.session_state.manual_te = []
             st.success("🎉 模拟出票成功！已打入下方账单存根。")
             st.rerun()
 
-# 2. 专业复式盘
-with bet_tabs:
+# 2. 专业复式盘 【修复处：加上了 [1] 索引】
+with bet_tabs[1]:
     st.markdown("### 🟢 复式多段组合盘")
     num_count = st.slider("请选择复式包裹号码个数", 7, 12, 7)
     total_notes = math.comb(num_count, 6)
@@ -227,8 +218,8 @@ with bet_tabs:
             st.success(f"🎉 复式注单下注成功！大底号码：{f_nums}")
             st.rerun()
 
-# 3. 智能机选盘
-with bet_tabs:
+# 3. 智能机选盘 【修复处：加上了 [2] 索引】
+with bet_tabs[2]:
     st.markdown("### 🟢 智能机选大厅")
     bet_price_dt = st.radio("机选下注单价", ["全注 ($10)", "半注 ($5)"], horizontal=True, key="p3")
     cost_dt = 10 if "全注" in bet_price_dt else 5
