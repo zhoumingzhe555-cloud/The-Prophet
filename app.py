@@ -7,9 +7,9 @@ import time
 from datetime import datetime
 
 # --- 页面基本配置 ---
-st.set_page_config(page_title="预言家娱乐全控盘", page_icon="🔮", layout="centered")
+st.set_page_config(page_title="预言家全控模拟盘", page_icon="🔮", layout="centered")
 
-# --- 🎯 v22.5 全网跨设备共享数据总线 UI 样式表 ---
+# --- 🎯 v24.0 全网跨设备共享数据总线终极稳固版样式表 ---
 st.markdown("""
     <style>
     .block-container { padding-top: 0.2rem !important; padding-bottom: 0.2rem !important; padding-left: 0.2rem !important; padding-right: 0.2rem !important; }
@@ -90,12 +90,12 @@ def get_ball_color_class(num):
     if num in BLUE_BALLS: return "ball-b"
     return "ball-g"
 
-# --- 👑 全网唯一共享数据库资源 ---
+# --- 👑 全网唯一共享资源数据库中心 ---
 @st.cache_resource
 def init_global_shared_db():
     return {
         "users": {
-            "admin": {"password": "888", "role": "admin", "status": "active", "wallet": 0.0},
+            "admin": {"password": "888", "role": "admin", "status": "approved", "wallet": 0.0},
             "test": {"password": "123", "role": "user", "status": "active", "wallet": 1000.0}
         },
         "reg_requests": {},
@@ -105,7 +105,7 @@ def init_global_shared_db():
 
 db = init_global_shared_db()
 
-# 本地会话私有状态
+# 会话隔离私有身份状态锁
 if 'logged_in_user' not in st.session_state: st.session_state.logged_in_user = None
 if 'manual_ping' not in st.session_state: st.session_state.manual_ping = []
 if 'manual_te' not in st.session_state: st.session_state.manual_te = []
@@ -115,9 +115,10 @@ if 'count_f' not in st.session_state: st.session_state.count_f = 7
 if 'count_dan' not in st.session_state: st.session_state.count_dan = 2
 if 'count_tuo' not in st.session_state: st.session_state.count_tuo = 6
 
-# --- 数据采集模块 ---
+# --- 📡 联网数据采集引擎与熔断器 ---
 @st.cache_data(ttl=3600)
 def fetch_live_data_50():
+    fallback_data = [{"issue": "2026/058", "date": "2026-05-18", "numbers": [1, 2, 3, 4, 5, 6], "special": 7}]
     try:
         url = "https://cpdata.io"
         response = requests.get(url, timeout=3)
@@ -131,15 +132,22 @@ def fetch_live_data_50():
             if live_data: return live_data
     except Exception:
         pass
-    return [{"issue": "2026/058", "date": "2026-05-18", "numbers": [1, 2, 3, 4, 5, 6], "special": 7}]
+    return fallback_data
 
 history_50 = fetch_live_data_50()
-latest_draw = history_50
+latest_draw = history_50 if (history_50 and isinstance(history_50, list) and "numbers" in history_50[0]) else {"issue": "2026/058", "date": "2026-05-18", "numbers": [1, 2, 3, 4, 5, 6], "special": 7}
 
-# ----------------- 🚨【管理员红牌提示系统】 -----------------
+# 统计历史频次
+freq_map = {i: 0 for i in range(1, 49)}
+for draw in history_50:
+    if "numbers" in draw:
+        for n in draw.get("numbers", []) + [draw.get("special", 7)]:
+            if n in freq_map: freq_map[n] += 1
+
+# ----------------- 🚨【管理员全局红牌新用户申请提示系统】 -----------------
 if st.session_state.logged_in_user == "admin":
-    pending_reg_count = len([k for k, v in db["reg_requests"].items() if v["status"] == "pending"])
-    pending_dep_count = len([d for d in db["deposit_requests"] if d["status"] == "pending"])
+    pending_reg_count = len([k for k, v in db["reg_requests"].items() if v.get("status") == "pending"])
+    pending_dep_count = len([d for d in db["deposit_requests"] if d.get("status") == "pending"])
     if pending_reg_count > 0 or pending_dep_count > 0:
         st.markdown(f"""
         <div class="admin-alert-banner">
@@ -147,7 +155,7 @@ if st.session_state.logged_in_user == "admin":
         </div>
         """, unsafe_allow_html=True)
 
-# ----------------- 🔮 统一置顶面板 -----------------
+# ----------------- 🔮 统一置顶看板 -----------------
 st.markdown('<div class="prophet-logo-title">🔮 预言家模拟控制大厅</div>', unsafe_allow_html=True)
 
 ball_html = '<div class="draw-container">'
@@ -162,7 +170,7 @@ with col_info2: st.markdown("<div style='font-size:12px;color:#8a2be2;font-weigh
 
 st.divider()
 
-# ----------------- 🔐 系统登录与开户网关 -----------------
+# ----------------- 🔐 全网统一鉴权登录注册网关 -----------------
 if st.session_state.logged_in_user is None:
     st.subheader("🔑 账户鉴权安全中心")
     log_tab, reg_tab = st.tabs(["🔒 现有账号登入", "📝 新用户申请注册"])
@@ -180,7 +188,7 @@ if st.session_state.logged_in_user is None:
                 else: st.error("❌ 密码错误！")
             elif l_user in db["reg_requests"] and db["reg_requests"][l_user]["status"] == "pending":
                 st.error("❌ 账号处于 [待审核] 状态，请联系管理员核准开通。")
-            else: st.error("❌ 该账号未提交申请或不存在！")
+            else: st.error("❌ 该账号未提交申请或密码不匹配！")
             
     with reg_tab:
         r_user = st.text_input("设定新账号", key="reg_u", placeholder="如：jack88").strip()
@@ -190,7 +198,7 @@ if st.session_state.logged_in_user is None:
             elif r_user in db["users"] or r_user in db["reg_requests"]: st.error("⚠️ 该用户名已被占用或正在等待审核！")
             else:
                 db["reg_requests"][r_user] = {"password": r_pass, "status": "pending", "time": datetime.now().strftime("%H:%M")}
-                st.success("📩 申请成功！账号已打入全网共享等待大厅，请刷新管理端查看。")
+                st.success("📩 申请成功！账号已打入全网共享大厅，请通知管理员审批。")
                 time.sleep(0.4); st.rerun()
     st.stop()
 
@@ -201,20 +209,20 @@ if st.session_state.logged_in_user == "admin":
         st.session_state.logged_in_user = None
         st.rerun()
         
-    p_reg = [k for k, v in db["reg_requests"].items() if v["status"] == "pending"]
-    p_dep = [d for d in db["deposit_requests"] if d["status"] == "pending"]
+    p_reg = [k for k, v in db["reg_requests"].items() if v.get("status") == "pending"]
+    p_dep = [d for d in db["deposit_requests"] if d.get("status") == "pending"]
     
-    # 🎯【核心修复：补齐参数】
     adm_menu = st.radio("🛠️ 后台核准大厅", [f"📥 新开户申请审核 ({len(p_reg)})", f"💰 充值订单订单下发 ({len(p_dep)})", "👥 普户资产花名册"])
     
     if "新开户申请审核" in adm_menu:
         st.subheader("📥 普通用户开户申请单列表")
         if not p_reg: st.caption("✅ 暂无任何新开户申请。")
         for u in p_reg:
-            col_u1, col_u2 = st.columns(2) # 🎯【核心修复】指定切分 2 列，彻底消灭崩溃
+            col_u1, col_u2 = st.columns(2)
             col_u1.write(f"👤 申请人：**{u}** | 申请时间: {db['reg_requests'][u]['time']}")
             if col_u2.button("✔️ 批准开设", key=f"app_u_{u}"):
-                db["users"][u] = {"password": db["reg_requests"][u]["password"], "role": "user", "status": "pending", "wallet": 0.0}
+                # 🎯【核心Bug修复】开通时角色状态赋予 approved，资产下发后转为 active 激活
+                db["users"][u] = {"password": db["reg_requests"][u]["password"], "role": "user", "status": "approved", "wallet": 0.0}
                 db["reg_requests"][u]["status"] = "approved"
                 st.success(f"已成功为 [{u}] 开设账号，允许登入！")
                 st.rerun()
@@ -223,12 +231,12 @@ if st.session_state.logged_in_user == "admin":
         st.subheader("💰 待到账充值订单明细")
         if not p_dep: st.caption("✅ 暂无任何待充值订单。")
         for idx, req in enumerate(db["deposit_requests"]):
-            if req["status"] == "pending":
-                col_d1, col_d2 = st.columns(2) # 🎯【核心修复】指定切分 2 列
+            if req.get("status") == "pending":
+                col_d1, col_d2 = st.columns(2)
                 col_d1.write(f"👤 申请人: **{req['username']}** | 申请金额: **${req['amount']:,.0f}**")
                 if col_d2.button("💸 同步到账", key=f"app_d_{idx}"):
                     db["users"][req["username"]]["wallet"] += req["amount"]
-                    db["users"][req["username"]]["status"] = "active"
+                    db["users"][req["username"]]["status"] = "active" # 资产到账，正式激活下注盘
                     req["status"] = "approved"
                     st.success(f"成功下发资金！已为用户 [{req['username']}] 增加体验金 ${req['amount']}。")
                     st.rerun()
@@ -236,22 +244,24 @@ if st.session_state.logged_in_user == "admin":
     elif "普户资产花名册" in adm_menu:
         st.subheader("👥 普通用户余额宏观控盘")
         for name, info in db["users"].items():
-            if info["role"] == "user":
-                col_m1, col_m2, col_m3 = st.columns(3) # 🎯【核心修复】指定切分 3 列
+            if info.get("role") == "user":
+                col_m1, col_m2, col_m3 = st.columns(3)
                 col_m1.write(f"👤 普户: **{name}**")
                 new_bal = col_m2.number_input(f"设余额 ({name})", min_value=0.0, max_value=999999.0, value=float(info["wallet"]), step=100.0, label_visibility="collapsed", key=f"edit_b_{name}")
                 if col_m3.button("💾 确改", key=f"save_b_{name}"):
                     db["users"][name]["wallet"] = new_bal
+                    if new_bal > 0: db["users"][name]["status"] = "active"
                     st.success(f"已成功将用户 [{name}] 的余额微调强控为 ${new_bal:,.0f}！")
                     st.rerun()
     st.stop()
 
 # ----------------- 👤 普通用户控制台大厅 -----------------
 current_user = st.session_state.logged_in_user
-user_wallet = db["users"][current_user]["wallet"]
-has_deposited = db["users"][current_user]["status"] == "active" and user_wallet > 0
+user_data = db["users"].get(current_user, {"wallet": 0.0, "status": "approved"})
+user_wallet = user_data["wallet"]
+has_deposited = user_data.get("status") == "active" and user_wallet > 0
 
-col_w1, col_w2 = st.columns(2) # 🎯【核心修复】指定切分 2 列
+col_w1, col_w2 = st.columns(2)
 with col_w1:
     if has_deposited:
         st.markdown(f'<div class="wallet-card-mini">🪙 您的模拟资产余额: ${user_wallet:,.0f}</div>', unsafe_allow_html=True)
@@ -259,7 +269,7 @@ with col_w1:
         st.markdown("<div style='height:42px; line-height:42px; font-size:11px; color:#ff3b30; font-weight:bold;'>⚠️ 资产未激活，请在右侧提交金额并通知管理员开通！</div>", unsafe_allow_html=True)
 
 with col_w2:
-    col_input, col_btn = st.columns(2) # 🎯【核心修复】指定切分 2 列
+    col_input, col_btn = st.columns(2)
     with col_input: deposit_amount = st.number_input("充值额", min_value=100, max_value=500000, value=5000, step=100, label_visibility="collapsed", key="u_dep_val")
     with col_btn:
         if st.button("🧧 申请充值", key="u_top_up_btn"):
