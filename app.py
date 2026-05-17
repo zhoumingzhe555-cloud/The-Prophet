@@ -3,11 +3,13 @@ import random
 import math
 import pandas as pd
 import requests
+import time
+from datetime import datetime  # 🎯【核心修复】补齐时间模块，彻底消灭 NameError 注册崩溃
 
 # --- 页面基本配置 ---
-st.set_page_config(page_title="预言家娱乐全控盘", page_icon="🔮", layout="centered")
+st.set_page_config(page_title="预言家全控模拟盘", page_icon="🔮", layout="centered")
 
-# --- 🎯 v20.0 全原生移动端像素级紧凑正圆巧克力矩阵与尊贵管理控制台样式表 ---
+# --- 🎯 v21.0 全原生移动端像素级紧凑正圆巧克力矩阵与尊贵管理控制台样式表 ---
 st.markdown("""
     <style>
     /* 极致挤压手机端四周无用边距 */
@@ -19,7 +21,6 @@ st.markdown("""
         color: white !important; padding: 10px; border-radius: 8px; text-align: center;
         font-weight: 900 !important; font-size: 14px !important; margin-bottom: 10px !important;
         box-shadow: 0px 4px 10px rgba(255,59,48,0.3);
-        animation: pulse 1.5s infinite;
     }
     
     /* 预言家顶层核心标志样式 */
@@ -77,8 +78,8 @@ st.markdown("""
 
 # --- 官方49码波色库划分 ---
 RED_BALLS = [1, 2, 7, 8, 12, 13, 18, 19, 23, 24, 29, 30, 34, 35, 40, 45, 46]
-BLUE_BALLS = [3, 4, 9, 10, 14, 15, 20, 25, 26, 31, 36, 37, 41, 42, 47, 48]
-GREEN_BALLS = [5, 6, 11, 16, 17, 21, 22, 27, 28, 32, 33, 38, 39, 43, 44, 49]
+BLUE_BALLS = [3, 4, 9, 10, 14, 15, 20, 25, 26, 31, 32, 36, 37, 41, 42, 47, 48]
+GREEN_BALLS = [5, 6, 11, 15, 16, 21, 22, 27, 28, 33, 38, 39, 43, 44, 49]
 
 def get_ball_style(num):
     if num in RED_BALLS: return "draw-red"
@@ -90,7 +91,7 @@ def get_ball_color_class(num):
     if num in BLUE_BALLS: return "ball-b"
     return "ball-g"
 
-# --- ⚙️ 全局超极记忆数据库初始化 ---
+# --- ⚙️ 跨设备全局数据广播与记忆初始化 ---
 if 'users' not in st.session_state:
     st.session_state.users = {
         "admin": {"password": "888", "role": "admin", "status": "active", "wallet": 0.0},
@@ -110,7 +111,7 @@ if 'count_f' not in st.session_state: st.session_state.count_f = 7
 if 'count_dan' not in st.session_state: st.session_state.count_dan = 2
 if 'count_tuo' not in st.session_state: st.session_state.count_tuo = 6
 
-# --- 📡 联网对账引擎与防报错兜底熔断锁 ---
+# --- 数据联网采集模块 ---
 @st.cache_data(ttl=3600)
 def fetch_live_data_50():
     try:
@@ -126,24 +127,22 @@ def fetch_live_data_50():
             if live_data: return live_data
     except Exception:
         pass
-    # 彻底杜绝崩溃：联网失败时秒级启动闭合高仿真本地大底
-    return [{"issue": "2026/058", "date": "2026-05-18", "numbers": [3, 12, 24, 33, 45, 48], "special": 7}]
+    return [{"issue": "2026/058", "date": "2026-05-18", "numbers": [1, 8, 15, 22, 29, 36], "special": 49}]
 
 history_50 = fetch_live_data_50()
-latest_draw = history_50[0]
+latest_draw = history_50
 
-# --- 📊 统计历史频次大底 ---
+# 统计历史频次
 freq_map = {i: 0 for i in range(1, 50)}
 for draw in history_50:
     for n in draw["numbers"] + [draw["special"]]:
         if n in freq_map: freq_map[n] += 1
 
-# ----------------- 🚨【核心修复：管理员红牌新用户申请提示系统】 -----------------
+# ----------------- 🚨【管理员全局红牌新用户申请提示系统】 -----------------
 if st.session_state.logged_in_user and st.session_state.users[st.session_state.logged_in_user]["role"] == "admin":
     pending_reg_count = len([k for k, v in st.session_state.reg_requests.items() if v["status"] == "pending"])
     pending_dep_count = len([d for d in st.session_state.deposit_requests if d["status"] == "pending"])
     
-    # 只要有待审批的用户或充值，顶部立即亮起强光警报
     if pending_reg_count > 0 or pending_dep_count > 0:
         st.markdown(f"""
         <div class="admin-alert-banner">
@@ -151,8 +150,8 @@ if st.session_state.logged_in_user and st.session_state.users[st.session_state.l
         </div>
         """, unsafe_allow_html=True)
 
-# ----------------- 🔮 网站基础置顶面板 -----------------
-st.markdown('<div class="prophet-logo-title">🔮 预言家娱乐模拟盘</div>', unsafe_allow_html=True)
+# ----------------- 🔮 网站基础置顶大厅 -----------------
+st.markdown('<div class="prophet-logo-title">🔮 预言家模拟控制大厅</div>', unsafe_allow_html=True)
 
 # 真实开奖球座渲染
 ball_html = '<div class="draw-container">'
@@ -168,7 +167,7 @@ with col_info2: st.markdown("<div style='font-size:12px;color:#8a2be2;font-weigh
 
 st.divider()
 
-# ----------------- 🔐 系统登录与网关分流区 -----------------
+# ----------------- 🔐 系统登录与开户网关 -----------------
 if st.session_state.logged_in_user is None:
     st.subheader("🔑 账户鉴权安全中心")
     log_tab, reg_tab = st.tabs(["🔒 现有账号登入", "📝 新用户申请注册"])
@@ -198,21 +197,20 @@ if st.session_state.logged_in_user is None:
             elif r_user in st.session_state.users or r_user in st.session_state.reg_requests:
                 st.error("⚠️ 该用户名已被占用或正在等待审核！")
             else:
-                # 写入待审批池
+                # 🎯【完美修复】由于顶部成功导入了 datetime 模块，这里提交申请将极其流畅畅通，绝无 NameError！
                 st.session_state.reg_requests[r_user] = {"password": r_pass, "status": "pending", "time": datetime.now().strftime("%H:%M")}
-                st.success("📩 申请成功！账号已提交至后台，请联系管理员确认通过。")
-                st.rerun()
+                st.success("📩 申请成功！账号已成功提交至总后台，请联系管理员确认通过。")
+                time.sleep(0.5); st.rerun()
                 
     st.stop()
 
-# ----------------- 👑 后台管理员专区（Admin Panel） -----------------
+# ----------------- 👑 后台管理员控制大厅（Admin Panel） -----------------
 if st.session_state.logged_in_user == "admin":
     st.header("👑 至尊总管理全控后台")
     if st.button("🚪 安全注销退出登录", key="admin_logout"):
         st.session_state.logged_in_user = None
         st.rerun()
         
-    # 计算红点挂件数量
     p_reg = [k for k, v in st.session_state.reg_requests.items() if v["status"] == "pending"]
     p_dep = [d for d in st.session_state.deposit_requests if d["status"] == "pending"]
     
@@ -221,10 +219,9 @@ if st.session_state.logged_in_user == "admin":
     # 1. 审批开户
     if "新开户申请审核" in adm_menu:
         st.subheader("📥 普通用户开户申请单列表")
-        if not p_reg:
-            st.caption("✅ 暂无任何新开户申请。")
+        if not p_reg: st.caption("✅ 暂无任何新开户申请。")
         for u in p_reg:
-            col_u1, col_u2 = st.columns([2, 1])
+            col_u1, col_u2 = st.columns()
             col_u1.write(f"👤 申请人：**{u}** | 申请时间: {st.session_state.reg_requests[u]['time']}")
             if col_u2.button("✔️ 批准开设", key=f"app_u_{u}"):
                 st.session_state.users[u] = {"password": st.session_state.reg_requests[u]["password"], "role": "user", "status": "active", "wallet": 0.0}
@@ -235,12 +232,10 @@ if st.session_state.logged_in_user == "admin":
     # 2. 审批充值
     elif "充值订单订单下发" in adm_menu:
         st.subheader("💰 待到账充值订单明细")
-        pending_deps = [d for d in st.session_state.deposit_requests if d["status"] == "pending"]
-        if not pending_deps:
-            st.caption("✅ 暂无任何待充值订单。")
+        if not p_dep: st.caption("✅ 暂无任何待充值订单。")
         for idx, req in enumerate(st.session_state.deposit_requests):
             if req["status"] == "pending":
-                col_d1, col_d2 = st.columns([2, 1])
+                col_d1, col_d2 = st.columns()
                 col_d1.write(f"👤 申请人: **{req['username']}** | 申请金额: **${req['amount']:,.0f}**")
                 if col_d2.button("💸 同步到账", key=f"app_d_{idx}"):
                     st.session_state.users[req["username"]]["wallet"] += req["amount"]
@@ -254,9 +249,8 @@ if st.session_state.logged_in_user == "admin":
         st.subheader("👥 普通用户余额宏观控盘")
         for name, info in st.session_state.users.items():
             if info["role"] == "user":
-                col_m1, col_m2, col_m3 = st.columns([1, 1, 1])
+                col_m1, col_m2, col_m3 = st.columns()
                 col_m1.write(f"👤 普户: **{name}**")
-                # 动态输入修改余额
                 new_bal = col_m2.number_input(f"设余额 ({name})", min_value=0.0, max_value=999999.0, value=float(info["wallet"]), step=100.0, label_visibility="collapsed", key=f"edit_b_{name}")
                 if col_m3.button("💾 确改", key=f"save_b_{name}"):
                     st.session_state.users[name]["wallet"] = new_bal
@@ -269,26 +263,28 @@ current_user = st.session_state.logged_in_user
 user_wallet = st.session_state.users[current_user]["wallet"]
 has_deposited = st.session_state.users[current_user]["status"] == "active" and user_wallet > 0
 
+def get_player_rank(balance):
+    if balance >= 50000: return "🏆神算"
+    if balance >= 20000: return "💎金手"
+    return "🌟预言家"
+current_rank = get_player_rank(user_wallet)
+
 col_w1, col_w2 = st.columns(2)
 with col_w1:
-    # 只有当管理员下发完成第一笔充值后，余额才允许解封亮起
     if has_deposited:
         st.markdown(f'<div class="wallet-card-mini">🪙 您的模拟资产余额: ${user_wallet:,.0f} <span class="rank-badge">{current_rank}</span></div>', unsafe_allow_html=True)
     else:
-        st.markdown("<div style='height:42px; line-height:42px; font-size:12px; color:#e43f5a; font-weight:bold;'>⚠️ 您的资产尚未激活，请在右侧提交金额并通知管理员核准！</div>", unsafe_allow_html=True)
+        st.markdown("<div style='height:42px; line-height:42px; font-size:11px; color:#ff3b30; font-weight:bold;'>⚠️ 资产未激活，请在右侧提交金额并通知管理员开通！</div>", unsafe_allow_html=True)
 
 with col_w2:
     col_input, col_btn = st.columns()
-    with col_input:
-        deposit_amount = st.number_input("充值额", min_value=100, max_value=500000, value=5000, step=100, label_visibility="collapsed", key="u_dep_val")
+    with col_input: deposit_amount = st.number_input("充值额", min_value=100, max_value=500000, value=5000, step=100, label_visibility="collapsed", key="u_dep_val")
     with col_btn:
         if st.button("🧧 申请充值", key="u_top_up_btn"):
-            # 录入待审核账单
             st.session_state.deposit_requests.append({"username": current_user, "amount": float(deposit_amount), "status": "pending"})
             st.toast(f"📩 充值申请 ${deposit_amount} 已提交后台！请联系管理员审核。")
             time.sleep(0.5); st.rerun()
 
-# 退出机制
 st.write("")
 if st.button("🚪 安全注销退出登录", key="user_logout"):
     st.session_state.logged_in_user = None
@@ -392,6 +388,5 @@ elif st.session_state.current_tab == "一马中特":
                     st.markdown('</div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
-# 3. 其余玩法复式与胆拖保持逻辑不变
 else:
-    st.caption("📊 复式及胆拖玩法与旧版逻辑完全对齐，本金批准激活后，可直接选择个数并提交。")
+    st.caption("📊 复式及胆拖玩法与旧版逻辑完全对齐，本金批准激活后，普户可直接选择个数并提交。")
