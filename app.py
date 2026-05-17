@@ -5,9 +5,9 @@ import pandas as pd
 import requests
 
 # --- 页面配置 ---
-st.set_page_config(page_title="预言家大满贯盘", page_icon="🔮", layout="centered")
+st.set_page_config(page_title="预言家娱乐模拟盘", page_icon="🔮", layout="centered")
 
-# --- 🎯 v17.0 终极原生像素级紧凑正圆巧克力矩阵样式表 ---
+# --- 🎯 v17.5 全原生等比铁板死锁样式表（100% 拒绝旧网页缓存） ---
 st.markdown("""
     <style>
     /* 极致挤压手机端四周无用边距 */
@@ -15,36 +15,22 @@ st.markdown("""
     
     /* 预言家顶层核心防伪标志样式 */
     .prophet-logo-title {
-        text-align: center !important;
-        font-size: 20px !important;
-        font-weight: 900 !important;
+        text-align: center !important; font-size: 20px !important; font-weight: 900 !important;
         background: linear-gradient(135deg, #ffd700, #8a2be2, #00f2fe) !important;
-        -webkit-background-clip: text !important;
-        -webkit-text-fill-color: transparent !important;
-        margin-top: 2px !important;
-        margin-bottom: 4px !important;
-        letter-spacing: 2px !important;
-        text-shadow: 1px 1px 3px rgba(0,0,0,0.1) !important;
+        -webkit-background-clip: text !important; -webkit-text-fill-color: transparent !important;
+        margin-top: 2px !important; margin-bottom: 4px !important; letter-spacing: 2px !important;
     }
     
     /* 核心行动大按钮 */
     div[data-testid="stVerticalBlock"] .stButton>button { 
         background: linear-gradient(135deg, #4b0082, #8a2be2) !important; 
-        color: white !important; border-radius: 25px !important; width: 100% !important; height: 42px !important; 
-        font-size: 15px !important; font-weight: bold !important; border: none !important;
-        box-shadow: 0px 4px 10px rgba(138,43,226,0.3);
+        color: white !important; border-radius: 25px !important; width: 100% !important; height: 42px !important; font-size: 15px !important; font-weight: bold !important; border: none !important;
     }
     
-    /* 强控手机端所有列容器必须横排，铁板一块雷打不动 */
+    /* 🔥 强控手机端所有列容器必须横排，铁板一块雷打不动 */
     div[data-testid="stHorizontalBlock"] {
-        display: flex !important;
-        flex-direction: row !important;
-        flex-wrap: nowrap !important;
-        gap: 2px !important;            
-        margin-top: 0px !important;
-        margin-bottom: 1px !important;  
-        padding: 0px !important;
-        width: 100% !important;
+        display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; gap: 2px !important;            
+        margin-top: 0px !important; margin-bottom: 1px !important; padding: 0px !important; width: 100% !important;
     }
     div[data-testid="stHorizontalBlock"] > div {
         flex: 1 1 0% !important; min-width: 0 !important; padding: 0 !important; margin: 0 !important;
@@ -52,16 +38,8 @@ st.markdown("""
     
     /* 🔢 将 1-49 所有原生按钮强行雕刻成完美正圆纯净球体 */
     .num-ball-wrap button {
-        color: white !important;
-        font-weight: bold !important;
-        font-size: 15px !important;
-        border: none !important;
-        border-radius: 50% !important;   
-        width: 100% !important;
-        aspect-ratio: 1 / 1 !important;  /* 高宽死锁 1:1 正圆 */
-        padding: 0px !important;
-        margin: 0px auto !important;
-        box-shadow: 1px 1px 2px rgba(0,0,0,0.15) !important;
+        color: white !important; font-weight: bold !important; font-size: 15px !important; border: none !important;
+        border-radius: 50% !important; width: 100% !important; aspect-ratio: 1 / 1 !important; padding: 0px !important; margin: 0px auto !important;
         display: flex !important; align-items: center !important; justify-content: center !important;
     }
     
@@ -70,16 +48,13 @@ st.markdown("""
     .ball-b button { background: linear-gradient(135deg, #4da6ff, #0066cc) !important; color: white !important; }
     .ball-g button { background: linear-gradient(135deg, #47d147, #009900) !important; color: white !important; }
     
-    /* 🔥【升级核心修复】勾选后蜕变为奢华金黄立体球，强行覆盖原有颜色 */
+    /* 🔥【强制覆盖】勾选后立刻蜕变为奢华金黄立体球 */
     .ball-s button {
         background: linear-gradient(135deg, #ffd700, #ff8c00) !important;
-        color: #1a1a1a !important;   /* 字体变为深黑更易阅读 */
-        font-weight: 900 !important;
-        border: 2px solid #ffffff !important;
-        box-shadow: 0px 0px 6px #ffd700 !important;
+        color: #1a1a1a !important; font-weight: 900 !important; border: 1.5px solid #ffffff !important; box-shadow: 0px 0px 5px #ffd700 !important;
     }
     
-    /* 置顶巨型开奖号码盘样式 */
+    /* 置顶开奖区 */
     .draw-container { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 1px; margin-bottom: 2px; justify-content: center; }
     .draw-ball { width: 38px; height: 38px; line-height: 38px; border-radius: 50%; color: white; text-align: center; font-weight: bold; font-size: 15px; box-shadow: 1px 2px 4px rgba(0,0,0,0.15); }
     .draw-red { background: linear-gradient(135deg, #ff4d4d, #cc0000); }
@@ -132,7 +107,7 @@ def fetch_live_data_50():
                     "issue": item.get("issue"),
                     "date": item.get("open_time")[:10],
                     "numbers": [int(x) for x in item.get("numbers")[:6]],
-                    "special": int(item.get("numbers")[6])
+                    "special": int(item.get("numbers"))
                 })
             if live_data: return live_data
     except Exception:
@@ -142,17 +117,17 @@ def fetch_live_data_50():
 history_50 = fetch_live_data_50()
 latest_draw = history_50[0]
 
-# ----------------- 🔮【置顶一：预言家大厅标志】 -----------------
+# ----------------- 🔮【绝对置顶一：防伪大厅标志】 -----------------
 st.markdown('<div class="prophet-logo-title">🔮 预言家 (The Prophet) 模拟大厅</div>', unsafe_allow_html=True)
 
-# ----------------- 🎰【置顶二：官方实时中奖彩球】 -----------------
+# ----------------- 🎰【绝对置顶二：真实开奖球】 -----------------
 ball_html = '<div class="draw-container">'
 for num in latest_draw['numbers']:
     ball_html += f'<div class="draw-ball {get_ball_style(num)}">{num}</div>'
 ball_html += f'<div class="draw-ball {get_ball_style(latest_draw["special"])}">{latest_draw["special"]}</div></div>'
 st.markdown(ball_html, unsafe_allow_html=True)
 
-# ----------------- 📅【置顶三：开奖期数与公告对齐】 -----------------
+# ----------------- 📅【绝对置顶三：开奖期数与公告对齐】 -----------------
 col_info1, col_info2 = st.columns(2)
 with col_info1:
     st.markdown(f"<div style='font-size:12px;color:#333;font-weight:bold;margin-top:2px;'>📡 第 {latest_draw['issue']} 期开奖 ({latest_draw['date']})</div>", unsafe_allow_html=True)
@@ -175,7 +150,7 @@ with col_w2:
         st.session_state.wallet += 5000.0
         st.rerun()
 
-# ----------------- 🛠️【第五步：纯原生药丸长条玩法大厅】 -----------------
+# ----------------- 🛠️【第五步：玩法大厅药丸导航条】 -----------------
 nav_cols = st.columns(4)
 tabs_list = ["自选平特", "一马中特", "标准复式", "黄金胆拖"]
 
@@ -189,13 +164,13 @@ for idx, tab_name in enumerate(tabs_list):
 
 st.divider()
 
-# ----------------- 🎰【第六步：核心玩法区域分流】 -----------------
+# ----------------- 🎰【第六步：核心玩法区域】 -----------------
 
 if st.session_state.current_tab == "自选平特":
     st.markdown("### 🟢 平特自选（5平码 + 1特码）")
     st.info(f"🛒 选号篮子：平码【{len(st.session_state.manual_ping)}/5】 | 特码【{len(st.session_state.manual_te)}/1】")
     
-    # 区域1：平码巧克力矩阵
+    # 区域1：平码
     st.markdown("**🟠 选 5 个【平码（正码）】：**")
     st.markdown('<div class="num-ball-wrap">', unsafe_allow_html=True)
     for row in range(7):
@@ -204,7 +179,6 @@ if st.session_state.current_tab == "自选平特":
             num = row * 7 + col + 1
             if num <= 49:
                 is_sel = num in st.session_state.manual_ping
-                # 🔥 通过动态调整 css 容器类，已被选中的号码直接注入 ball-s 样式（变成金黄色立体球座）
                 cls = "ball-s" if is_sel else get_ball_color_class(num)
                 lbl = f"{num}✔" if is_sel else f"{num}"
                 with cols[col]:
@@ -217,7 +191,7 @@ if st.session_state.current_tab == "自选平特":
     st.markdown('</div>', unsafe_allow_html=True)
 
     st.write("")
-    # 区域2：特码巧克力矩阵
+    # 区域2：特码
     st.markdown("**🔵 选 1 个【特码（特别号码）】：**")
     st.markdown('<div class="num-ball-wrap">', unsafe_allow_html=True)
     for row in range(7):
@@ -226,7 +200,6 @@ if st.session_state.current_tab == "自选平特":
             num = row * 7 + col + 1
             if num <= 49:
                 is_sel = num in st.session_state.manual_te
-                # 🔥 同步特码盘：被选中后秒变金黄色立体球座
                 cls = "ball-s" if is_sel else get_ball_color_class(num)
                 lbl = f"{num}★" if is_sel else f"{num}"
                 with cols[col]:
@@ -256,7 +229,7 @@ if st.session_state.current_tab == "自选平特":
             st.session_state.wallet -= 10
             st.session_state.bet_history.append({"玩法": "手选单式", "所选号码": f"平:{sorted(st.session_state.manual_ping)} 特:{st.session_state.manual_te}", "单价": 10, "原始数据": {"ping": sorted(st.session_state.manual_ping), "te": st.session_state.manual_te}, "状态": "等待开奖"})
             st.session_state.manual_ping, st.session_state.manual_te = [], []
-            st.success("🎉 下注成功！已同步录入底部总账记录。")
+            st.success("🎉 下注成功！")
             st.rerun()
 
 elif st.session_state.current_tab == "一马中特":
