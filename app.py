@@ -9,7 +9,7 @@ from datetime import datetime
 # --- 页面基本配置 ---
 st.set_page_config(page_title="预言家全控模拟盘", page_icon="🔮", layout="centered")
 
-# --- 🎯 v24.0 全网跨设备共享数据总线终极稳固版样式表 ---
+# --- 🎯 v24.5 终极像素级紧凑正圆巧克力矩阵样式表 ---
 st.markdown("""
     <style>
     .block-container { padding-top: 0.2rem !important; padding-bottom: 0.2rem !important; padding-left: 0.2rem !important; padding-right: 0.2rem !important; }
@@ -75,10 +75,10 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- 官方49码波色划分 ---
+# --- 官方49码红蓝绿波严格划分 ---
 RED_BALLS = [1, 2, 7, 8, 12, 13, 18, 19, 23, 24, 29, 30, 34, 35, 40, 45, 46]
 BLUE_BALLS = [3, 4, 9, 10, 14, 15, 20, 25, 26, 31, 36, 37, 41, 42, 47, 48]
-GREEN_BALLS = [5, 6, 11, 16, 17, 22, 27, 28, 32, 33, 38, 39, 43, 44, 49]
+GREEN_BALLS = [5, 6, 11, 16, 17, 21, 22, 27, 28, 32, 33, 38, 39, 43, 44, 49]
 
 def get_ball_style(num):
     if num in RED_BALLS: return "draw-red"
@@ -90,7 +90,7 @@ def get_ball_color_class(num):
     if num in BLUE_BALLS: return "ball-b"
     return "ball-g"
 
-# --- 👑 全网唯一共享资源数据库中心 ---
+# --- 👑【跨设备全网数据总线】全局数据库 ---
 @st.cache_resource
 def init_global_shared_db():
     return {
@@ -115,9 +115,10 @@ if 'count_f' not in st.session_state: st.session_state.count_f = 7
 if 'count_dan' not in st.session_state: st.session_state.count_dan = 2
 if 'count_tuo' not in st.session_state: st.session_state.count_tuo = 6
 
-# --- 📡 联网数据采集引擎与熔断器 ---
+# --- 📡【高容错核心加固】全自动数据采集引擎 ---
 @st.cache_data(ttl=3600)
 def fetch_live_data_50():
+    # 🎯【核心修复】完整补全离线兜底大底，格式100%安全
     fallback_data = [{"issue": "2026/058", "date": "2026-05-18", "numbers": [1, 2, 3, 4, 5, 6], "special": 7}]
     try:
         url = "https://cpdata.io"
@@ -135,12 +136,17 @@ def fetch_live_data_50():
     return fallback_data
 
 history_50 = fetch_live_data_50()
-latest_draw = history_50 if (history_50 and isinstance(history_50, list) and "numbers" in history_50[0]) else {"issue": "2026/058", "date": "2026-05-18", "numbers": [1, 2, 3, 4, 5, 6], "special": 7}
+
+# 🎯【核心类型加固锁】确保 history_50 是有效列表，latest_draw 强锁为字典对象
+if not isinstance(history_50, list) or len(history_50) == 0:
+    history_50 = [{"issue": "2026/058", "date": "2026-05-18", "numbers": [1, 2, 3, 4, 5, 6], "special": 7}]
+
+latest_draw = history_50[0]
 
 # 统计历史频次
-freq_map = {i: 0 for i in range(1, 49)}
+freq_map = {i: 0 for i in range(1, 50)}
 for draw in history_50:
-    if "numbers" in draw:
+    if isinstance(draw, dict) and "numbers" in draw:
         for n in draw.get("numbers", []) + [draw.get("special", 7)]:
             if n in freq_map: freq_map[n] += 1
 
@@ -155,9 +161,10 @@ if st.session_state.logged_in_user == "admin":
         </div>
         """, unsafe_allow_html=True)
 
-# ----------------- 🔮 统一置顶看板 -----------------
+# ----------------- 🔮 统一置顶面板 -----------------
 st.markdown('<div class="prophet-logo-title">🔮 预言家模拟控制大厅</div>', unsafe_allow_html=True)
 
+# 渲染置顶开奖球
 ball_html = '<div class="draw-container">'
 for num in latest_draw['numbers']:
     ball_html += f'<div class="draw-ball {get_ball_style(num)}">{num}</div>'
@@ -221,7 +228,6 @@ if st.session_state.logged_in_user == "admin":
             col_u1, col_u2 = st.columns(2)
             col_u1.write(f"👤 申请人：**{u}** | 申请时间: {db['reg_requests'][u]['time']}")
             if col_u2.button("✔️ 批准开设", key=f"app_u_{u}"):
-                # 🎯【核心Bug修复】开通时角色状态赋予 approved，资产下发后转为 active 激活
                 db["users"][u] = {"password": db["reg_requests"][u]["password"], "role": "user", "status": "approved", "wallet": 0.0}
                 db["reg_requests"][u]["status"] = "approved"
                 st.success(f"已成功为 [{u}] 开设账号，允许登入！")
@@ -233,12 +239,12 @@ if st.session_state.logged_in_user == "admin":
         for idx, req in enumerate(db["deposit_requests"]):
             if req.get("status") == "pending":
                 col_d1, col_d2 = st.columns(2)
-                col_d1.write(f"👤 申请人: **{req['username']}** | 申请金额: **${req['amount']:,.0f}**")
+                col_d1.write(f"👤 申请人: **{req['username']}** | 申请金额: **\${req['amount']:,.0f}**")
                 if col_d2.button("💸 同步到账", key=f"app_d_{idx}"):
                     db["users"][req["username"]]["wallet"] += req["amount"]
-                    db["users"][req["username"]]["status"] = "active" # 资产到账，正式激活下注盘
+                    db["users"][req["username"]]["status"] = "active" 
                     req["status"] = "approved"
-                    st.success(f"成功下发资金！已为用户 [{req['username']}] 增加体验金 ${req['amount']}。")
+                    st.success(f"成功下发资金！已为用户 [{req['username']}] 增加体验金 \${req['amount']}。")
                     st.rerun()
                     
     elif "普户资产花名册" in adm_menu:
@@ -251,7 +257,7 @@ if st.session_state.logged_in_user == "admin":
                 if col_m3.button("💾 确改", key=f"save_b_{name}"):
                     db["users"][name]["wallet"] = new_bal
                     if new_bal > 0: db["users"][name]["status"] = "active"
-                    st.success(f"已成功将用户 [{name}] 的余额微调强控为 ${new_bal:,.0f}！")
+                    st.success(f"已成功将用户 [{name}] 的余额微调强控为 \${new_bal:,.0f}！")
                     st.rerun()
     st.stop()
 
@@ -264,7 +270,7 @@ has_deposited = user_data.get("status") == "active" and user_wallet > 0
 col_w1, col_w2 = st.columns(2)
 with col_w1:
     if has_deposited:
-        st.markdown(f'<div class="wallet-card-mini">🪙 您的模拟资产余额: ${user_wallet:,.0f}</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="wallet-card-mini">🪙 您的模拟资产余额: \${user_wallet:,.0f}</div>', unsafe_allow_html=True)
     else:
         st.markdown("<div style='height:42px; line-height:42px; font-size:11px; color:#ff3b30; font-weight:bold;'>⚠️ 资产未激活，请在右侧提交金额并通知管理员开通！</div>", unsafe_allow_html=True)
 
@@ -274,7 +280,7 @@ with col_w2:
     with col_btn:
         if st.button("🧧 申请充值", key="u_top_up_btn"):
             db["deposit_requests"].append({"username": current_user, "amount": float(deposit_amount), "status": "pending"})
-            st.toast(f"📩 充值申请 ${deposit_amount} 已提交后台！请联系管理员审核。")
+            st.toast(f"📩 充值申请 \${deposit_amount} 已提交后台！请联系管理员审核。")
             time.sleep(0.4); st.rerun()
 
 st.write("")
@@ -334,48 +340,4 @@ if st.session_state.current_tab == "自选平特":
                 with cols[col]:
                     st.markdown(f'<div class="{cls}">', unsafe_allow_html=True)
                     if st.button(lbl, key=f"te_btn_{num}"):
-                        if num in st.session_state.manual_te: st.session_state.manual_te.remove(num)
-                        else: st.session_state.manual_te = [num]
-                        st.rerun()
-                    st.markdown('</div>', unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
-
-    st.write("")
-    col_o1, col_o2 = st.columns(2)
-    if col_o1.button("🗑️ 清空篮子", key="clear_m"):
-        st.session_state.manual_ping, st.session_state.manual_te = [], []
-        st.rerun()
-        
-    if col_o2.button("🛒 确认下注扣款", key="submit_m"):
-        intersect = set(st.session_state.manual_ping) & set(st.session_state.manual_te)
-        if not has_deposited: st.error("❌ 下注失败！您未被核准激活体验金，暂无投注权限。")
-        elif len(st.session_state.manual_ping) != 5 or len(st.session_state.manual_te) != 1: st.error("⚠️ 数量未选满！")
-        elif len(intersect) > 0: st.error("⚠️ 平码与特码选了重复数字！")
-        elif user_wallet < 10: st.error("❌ 余额不足！")
-        else:
-            db["users"][current_user]["wallet"] -= 10
-            db["bet_history"].append({"代号": current_user, "玩法": "单式手选", "号码": f"平:{sorted(st.session_state.manual_ping)} 特:{st.session_state.manual_te}", "模拟金额": "$10"})
-            st.session_state.manual_ping, st.session_state.manual_te = [], []
-            st.success("🎉 模拟下注出票成功！")
-            time.sleep(0.4); st.rerun()
-
-elif st.session_state.current_tab == "一马中特":
-    st.markdown("### 🎯 一马中特单挑（每注$50）")
-    st.markdown('<div class="num-ball-wrap">', unsafe_allow_html=True)
-    for row in range(7):
-        cols = st.columns(7)
-        for col in range(7):
-            num = row * 7 + col + 1
-            if num <= 49:
-                with cols[col]:
-                    st.markdown(f'<div class="{get_ball_color_class(num)}">', unsafe_allow_html=True)
-                    if st.button(f"{num}", key=f"one_match_{num}"):
-                        if not has_deposited: st.error("❌ 投注失败，您的本金尚未批准激活！")
-                        elif user_wallet < 50: st.error("❌ 余额不足！")
-                        else:
-                            db["users"][current_user]["wallet"] -= 50
-                            db["bet_history"].append({"代号": current_user, "玩法": "一马中特", "号码": f"独挑特码:[{num:02d}]", "模拟金额": "$50"})
-                            st.success(f"🎉 特码【{num:02d}】下注成功！")
-                            time.sleep(0.4); st.rerun()
-                    st.markdown('</div>', unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
+                        if num in st.session_state.manual_te: st.session_state.manual_te.remove(
