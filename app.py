@@ -58,15 +58,13 @@ def get_wave_name(num):
     return "绿波"
 
 # --- 核心模块：实时联网自动采集更新数据 ---
-@st.cache_data(ttl=3600)  # 后台每隔1小时自动去网上看一次有没有更新
+@st.cache_data(ttl=3600)
 def fetch_live_lottery_data():
     try:
-        # 联网请求公开且高稳定的彩票API接口
         url = "https://cpdata.io"
         response = requests.get(url, timeout=5)
         if response.status_code == 200:
             res_json = response.json()
-            # 格式化解析网络数据结构
             live_data = []
             for item in res_json.get("data", []):
                 live_data.append({
@@ -79,13 +77,13 @@ def fetch_live_lottery_data():
     except Exception as e:
         pass
     
-    # 联网失败时的紧急备用兜底本地数据 (2026年5月最新)
+    # 联网失败时的紧急备用兜底本地数据
     return [
         {"期数": "26/051", "日期": "2026-05-14", "正码": [5, 12, 19, 24, 31, 42], "特别号码": 28},
         {"期数": "26/050", "日期": "2026-05-12", "正码": [1, 9, 18, 22, 37, 46], "特别号码": 40},
         {"期数": "26/049", "日期": "2026-05-10", "正码": [3, 14, 21, 29, 35, 47], "特别号码": 8},
         {"期数": "26/048", "日期": "2026-05-07", "正码": [6, 14, 20, 23, 28, 34], "特别号码": 49},
-        {"期数": "26/047", "日期": "2026-05-05", "正码": [2, 7, 8, 10, 18, 47], "特别号码": 4},
+        {"期数": "26/047", "日期": "2026-05-05", "正码": [2, 7, 0, 10, 18, 47], "特别号码": 4},
     ]
 
 # 启动全自动抓取
@@ -127,8 +125,8 @@ st.divider()
 # --- 三大玩法切换标签 ---
 play_type = st.tabs(["🎯 一马中特", "💡 智能复式", "🔮 特码波色"])
 
-# --- 一马中特模块 ---
-with play_type:
+# --- 修复处 1：指定第一个标签页索引 [0] ---
+with play_type[0]:
     st.header("⚡ 天算·一马中特精准单挑")
     crunch_mode = st.selectbox("核心推演心法", ["实时网络权重测算", "历史最长遗漏反弹", "热门连庄"])
     
@@ -155,8 +153,8 @@ with play_type:
         """, unsafe_allow_html=True)
         st.balloons()
 
-# --- 复式模块 ---
-with play_type:
+# --- 修复处 2：指定第二个标签页索引 [1] ---
+with play_type[1]:
     num_count = st.slider("选号个数", min_value=7, max_value=12, value=7)
     total_notes = math.comb(num_count, 6) if num_count >= 6 else 0
     st.caption(f"📊 总注数: **{total_notes} 注** | 💰 本金: **${total_notes*10} / ${total_notes*5}**")
@@ -167,8 +165,8 @@ with play_type:
         for num in picked_numbers: res_html += f'<div class="ball {get_ball_style(num)}">{num}</div>'
         st.markdown(res_html + '</div>', unsafe_allow_html=True)
 
-# --- 波色模块 ---
-with play_type:
+# --- 修复处 3：指定第三个标签页索引 [2] ---
+with play_type[2]:
     wave_choice = st.radio("预测下期特码波色倾向", ["红波特码群", "蓝波特码群"])
     if st.button("🔥 过滤群"):
         target_pool = RED_BALLS if "红" in wave_choice else BLUE_BALLS
