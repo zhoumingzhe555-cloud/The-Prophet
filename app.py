@@ -9,7 +9,7 @@ from datetime import datetime
 # --- 页面配置 ---
 st.set_page_config(page_title="预言家大满贯盘", page_icon="🔮", layout="centered")
 
-# --- 🎯 v12.5 原生高阶全触控与极致紧凑球座 UI 样式表 ---
+# --- 🎯 v13.0 原生高阶全触控与极致紧凑球座 UI 样式表 ---
 st.markdown("""
     <style>
     .block-container { padding-top: 0.4rem; padding-bottom: 0.4rem; padding-left: 0.2rem; padding-right: 0.2rem; }
@@ -84,6 +84,11 @@ def get_html_ball_class(num):
     if num in BLUE_BALLS: return "hb-blue"
     return "hb-green"
 
+def get_wave_name(num):
+    if num in RED_BALLS: return "红波"
+    if num in BLUE_BALLS: return "蓝波"
+    return "绿波"
+
 # --- 初始化 Session State ---
 if 'wallet' not in st.session_state: st.session_state.wallet = 10000.0
 if 'bet_history' not in st.session_state: st.session_state.bet_history = []
@@ -115,6 +120,7 @@ def fetch_live_data_50():
             if live_data: return live_data
     except Exception:
         pass
+    # 坚固仿真数据备用
     return [{"issue": "26/051", "date": "2026-05-14", "numbers": [1, 14, 19, 23, 27, 34], "special": 49}]
 
 history_50 = fetch_live_data_50()
@@ -126,15 +132,27 @@ for draw in history_50:
     for n in draw["numbers"] + [draw["special"]]:
         if n in freq_map: freq_map[n] += 1
 
-# ----------------- 📡【核心修复：采用纯原生安全置顶】 -----------------
+# ----------------- 📡【核心修复：期数与日期公告重回置顶位置】 -----------------
 st.write(f"📡 **官方同步最新开奖**：第 **{latest_draw['issue']}** 期 ({latest_draw['date']})")
 
-# 渲染立体开奖球
 ball_html = '<div class="ball-container">'
 for num in latest_draw['numbers']:
     ball_html += f'<div class="ball {get_ball_style(num)}">{num}</div>'
 ball_html += f'<div class="ball {get_ball_style(latest_draw["special"])}">{latest_draw["special"]}</div></div>'
 st.markdown(ball_html, unsafe_allow_html=True)
+
+# 50期历史开奖流水账单
+with st.expander(f"📅 点击展开/查阅全网最新 {len(history_50)} 期开奖真实历史流水记录"):
+    for draw in history_50:
+        st.markdown(f"""
+        <div style="padding: 5px 0; border-bottom: 1px solid #f1f5f9; font-size:13px;">
+            <span style="color:#4b0082; font-weight:bold;">第{draw['issue']}期</span> ({draw['date']}) 
+            正码: {', '.join(f'{n:02d}' for n in draw['numbers'])} | 
+            <span style="color:#dc143c; font-weight:bold;">特别号: {draw['special']:02d}</span> ({get_wave_name(draw['special'])})
+        </div>
+        """, unsafe_allow_html=True)
+
+st.divider()
 
 # ----------------- 📡 高级接口事件捕获系统 -----------------
 click_event = st.query_params
@@ -340,7 +358,7 @@ if st.session_state.bet_history:
                         if match_any >= 3: st.session_state.wallet += 160.0; win_sum += 160; bet["状态"] = f"🎉 中码！+$160"
                         else: bet["状态"] = "❌ 未中奖"
             
-            st.session_state.last_win_msg = f"🔮【预言家喜报】斩获模拟体验金：HK$ {win_sum:,.0f}！💰 当前总资产：HK$ {st.session_state.wallet:,.0f}！"
+            st.session_state.last_win_msg = f"🔮【预言家喜报】战报：本轮结算斩获模拟金 HK$ {win_sum:,.0f}！💰 当前荣誉资产：HK$ {st.session_state.wallet:,.0f}！🔥"
             st.rerun()
             
     if col_pay2.button("🗑️ 清空账本历史记录", key="clear_all_v11"):
