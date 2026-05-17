@@ -7,7 +7,7 @@ import requests
 # --- 页面配置 ---
 st.set_page_config(page_title="预言家娱乐模拟盘", page_icon="🔮", layout="centered")
 
-# --- 🎯 v17.5 全原生等比铁板死锁样式表（100% 拒绝旧网页缓存） ---
+# --- 🎯 v19.0 全原生等比铁板死锁样式表 ---
 st.markdown("""
     <style>
     /* 极致挤压手机端四周无用边距 */
@@ -48,7 +48,7 @@ st.markdown("""
     .ball-b button { background: linear-gradient(135deg, #4da6ff, #0066cc) !important; color: white !important; }
     .ball-g button { background: linear-gradient(135deg, #47d147, #009900) !important; color: white !important; }
     
-    /* 🔥【强制覆盖】勾选后立刻蜕变为奢华金黄立体球 */
+    /* 勾选后立刻蜕变为奢华金黄立体球 */
     .ball-s button {
         background: linear-gradient(135deg, #ffd700, #ff8c00) !important;
         color: #1a1a1a !important; font-weight: 900 !important; border: 1.5px solid #ffffff !important; box-shadow: 0px 0px 5px #ffd700 !important;
@@ -61,7 +61,7 @@ st.markdown("""
     .draw-blue { background: linear-gradient(135deg, #4da6ff, #0066cc); }
     .draw-green { background: linear-gradient(135deg, #47d147, #009900); }
     
-    .wallet-card-mini { background: linear-gradient(135deg, #111, #222); color: #ffd700; padding: 6px; border-radius: 8px; text-align: center; font-weight: bold; font-size: 12px; border: 1px solid #333; }
+    .wallet-card-mini { background: linear-gradient(135deg, #111, #222); color: #ffd700; padding: 6px; border-radius: 8px; text-align: center; font-weight: bold; font-size: 12px; border: 1px solid #333; height: 42px; line-height: 28px; }
     .rank-badge { background: #8a2be2; color: white; padding: 1px 4px; border-radius: 5px; font-size: 10px; margin-left: 2px; }
     </style>
     """, unsafe_allow_html=True)
@@ -82,12 +82,16 @@ def get_ball_color_class(num):
     return "ball-g"
 
 # --- 初始化 Session State ---
-if 'wallet' not in st.session_state: st.session_state.wallet = 10000.0
+if 'wallet' not in st.session_state: st.session_state.wallet = 0.0  
+if 'has_deposited' not in st.session_state: st.session_state.has_deposited = False  
 if 'bet_history' not in st.session_state: st.session_state.bet_history = []
 if 'manual_ping' not in st.session_state: st.session_state.manual_ping = []
 if 'manual_te' not in st.session_state: st.session_state.manual_te = []
 if 'current_tab' not in st.session_state: st.session_state.current_tab = "自选平特"
 if 'last_win_msg' not in st.session_state: st.session_state.last_win_msg = ""
+
+# 🛠️【核心加设】管理员全局控制开关状态锁（默认开启）
+if 'allow_deposit' not in st.session_state: st.session_state.allow_deposit = True
 
 if 'count_f' not in st.session_state: st.session_state.count_f = 7
 if 'count_dan' not in st.session_state: st.session_state.count_dan = 2
@@ -107,7 +111,7 @@ def fetch_live_data_50():
                     "issue": item.get("issue"),
                     "date": item.get("open_time")[:10],
                     "numbers": [int(x) for x in item.get("numbers")[:6]],
-                    "special": int(item.get("numbers"))
+                    "special": int(item.get("numbers")[-1]) if len(item.get("numbers", [])) > 6 else int(item.get("numbers")[-1])
                 })
             if live_data: return live_data
     except Exception:
@@ -115,7 +119,7 @@ def fetch_live_data_50():
     return [{"issue": "26/051", "date": "2026-05-14", "numbers": [1, 14, 19, 23, 27, 34], "special": 49}]
 
 history_50 = fetch_live_data_50()
-latest_draw = history_50[0]
+latest_draw = history_50
 
 # ----------------- 🔮【绝对置顶一：防伪大厅标志】 -----------------
 st.markdown('<div class="prophet-logo-title">🔮 预言家 (The Prophet) 模拟大厅</div>', unsafe_allow_html=True)
@@ -134,7 +138,7 @@ with col_info1:
 with col_info2:
     st.markdown("<div style='font-size:12px;color:#8a2be2;font-weight:bold;text-align:right;'>📢 下期截止：05-19 21:15</div>", unsafe_allow_html=True)
 
-# ----------------- 🪙【第四步：资产钱包小挂件】 -----------------
+# ----------------- 🪙【资产钱包与自定义自主金额充值模块】 -----------------
 def get_player_rank(balance):
     if balance >= 50000: return "🏆神算"
     if balance >= 20000: return "💎金手"
@@ -142,15 +146,30 @@ def get_player_rank(balance):
 
 current_rank = get_player_rank(st.session_state.wallet)
 
-col_w1, col_w2 = st.columns(2)
+col_w1, col_w2 = st.columns()
 with col_w1:
-    st.markdown(f'<div class="wallet-card-mini">🪙 余额: ${st.session_state.wallet:,.0f} <span class="rank-badge">{current_rank}</span></div>', unsafe_allow_html=True)
-with col_w2:
-    if st.button("🧧 充值 $5000 体验金", key="top_up_v15"):
-        st.session_state.wallet += 5000.0
-        st.rerun()
+    if st.session_state.has_deposited:
+        st.markdown(f'<div class="wallet-card-mini">🪙 余额: ${st.session_state.wallet:,.0f} <span class="rank-badge">{current_rank}</span></div>', unsafe_allow_html=True)
+    else:
+        st.markdown("<div style='height:42px; line-height:42px; font-size:12px; color:#999; font-style:italic;'>⚠️ 请先在右侧充值模拟体验金</div>", unsafe_allow_html=True)
 
-# ----------------- 🛠️【第五步：玩法大厅药丸导航条】 -----------------
+with col_w2:
+    col_input, col_btn = st.columns()
+    with col_input:
+        deposit_amount = st.number_input("充值额", min_value=100, max_value=500000, value=5000, step=100, label_visibility="collapsed", key="dep_val")
+    with col_btn:
+        if st.button("🧧 确认充值", key="top_up_v15"):
+            # 🔥【后台权限拦截判定】
+            if not st.session_state.allow_deposit:
+                st.error("❌ 充值失败！系统管理员已临时关闭全局充值通道。")
+            else:
+                st.session_state.wallet += float(deposit_amount)
+                st.session_state.has_deposited = True  
+                st.rerun()
+
+st.write("")
+
+# ----------------- 🛠️【玩法大厅药丸导航条】 -----------------
 nav_cols = st.columns(4)
 tabs_list = ["自选平特", "一马中特", "标准复式", "黄金胆拖"]
 
@@ -164,13 +183,12 @@ for idx, tab_name in enumerate(tabs_list):
 
 st.divider()
 
-# ----------------- 🎰【第六步：核心玩法区域】 -----------------
+# ----------------- 🎰【核心玩法区域】 -----------------
 
 if st.session_state.current_tab == "自选平特":
     st.markdown("### 🟢 平特自选（5平码 + 1特码）")
     st.info(f"🛒 选号篮子：平码【{len(st.session_state.manual_ping)}/5】 | 特码【{len(st.session_state.manual_te)}/1】")
     
-    # 区域1：平码
     st.markdown("**🟠 选 5 个【平码（正码）】：**")
     st.markdown('<div class="num-ball-wrap">', unsafe_allow_html=True)
     for row in range(7):
@@ -191,7 +209,6 @@ if st.session_state.current_tab == "自选平特":
     st.markdown('</div>', unsafe_allow_html=True)
 
     st.write("")
-    # 区域2：特码
     st.markdown("**🔵 选 1 个【特码（特别号码）】：**")
     st.markdown('<div class="num-ball-wrap">', unsafe_allow_html=True)
     for row in range(7):
@@ -219,7 +236,9 @@ if st.session_state.current_tab == "自选平特":
         
     if col_o2.button("🛒 确认下注扣款", key="submit_m"):
         intersect = set(st.session_state.manual_ping) & set(st.session_state.manual_te)
-        if len(st.session_state.manual_ping) != 5 or len(st.session_state.manual_te) != 1: 
+        if not st.session_state.has_deposited:
+            st.error("❌ 下注失败！您的资产账本尚未激活，请先在上方输入金额并完成首次充值！")
+        elif len(st.session_state.manual_ping) != 5 or len(st.session_state.manual_te) != 1: 
             st.error("⚠️ 数量未选满！必须在上面勾选齐 5个平码 和 1个特码 后，方可点击确认。")
         elif len(intersect) > 0: 
             st.error("⚠️ 平码与特码选了重复的数字，请检查取消重号！")
@@ -229,7 +248,7 @@ if st.session_state.current_tab == "自选平特":
             st.session_state.wallet -= 10
             st.session_state.bet_history.append({"玩法": "手选单式", "所选号码": f"平:{sorted(st.session_state.manual_ping)} 特:{st.session_state.manual_te}", "单价": 10, "原始数据": {"ping": sorted(st.session_state.manual_ping), "te": st.session_state.manual_te}, "状态": "等待开奖"})
             st.session_state.manual_ping, st.session_state.manual_te = [], []
-            st.success("🎉 下注成功！")
+            st.success("🎉 下注成功！已同步录入底部总账记录。")
             st.rerun()
 
 elif st.session_state.current_tab == "一马中特":
@@ -243,7 +262,8 @@ elif st.session_state.current_tab == "一马中特":
                 with cols[col]:
                     st.markdown(f'<div class="{get_ball_color_class(num)}">', unsafe_allow_html=True)
                     if st.button(f"{num}", key=f"one_match_{num}"):
-                        if st.session_state.wallet < 50: st.error("❌ 模拟余额不足！")
+                        if not st.session_state.has_deposited: st.error("❌ 下注失败！请先在上方输入金额完成充值激活账户！")
+                        elif st.session_state.wallet < 50: st.error("❌ 模拟余额不足！")
                         else:
                             st.session_state.wallet -= 50
                             st.session_state.bet_history.append({"玩法": "一马中特", "所选号码": f"特码:[{num:02d}]", "单价": 50, "原始数据": {"ping": [], "te": num}, "状态": "等待开奖"})
@@ -264,7 +284,8 @@ elif st.session_state.current_tab == "标准复式":
     cost_f = total_notes * 10
     st.info(f"📊 该复式折合共 **{total_notes}** 注 | 需从钱包扣除：**HK$ {cost_f}**")
     if st.button("🛒 确认提交复式投注", key="sub_f_bet"):
-        if st.session_state.wallet < cost_f: st.error("❌ 余额不足！")
+        if not st.session_state.has_deposited: st.error("❌ 下注失败！请先在上方输入金额完成充值激活账户！")
+        elif st.session_state.wallet < cost_f: st.error("❌ 余额不足！")
         else:
             st.session_state.wallet -= cost_f
             f_nums = sorted(random.sample(range(1, 50), st.session_state.count_f))
@@ -287,7 +308,8 @@ elif st.session_state.current_tab == "黄金胆拖":
     cost_dt = total_notes_dt * 10
     st.info(f"📊 该胆拖组合折合共 **{total_notes_dt}** 注 | 需模拟金：**HK$ {cost_dt}**")
     if st.button("🛒 确认提交胆拖投注", key="sub_dt_bet"):
-        if st.session_state.wallet < cost_dt: st.error("❌ 余额不足！")
+        if not st.session_state.has_deposited: st.error("❌ 下注失败！请先在上方输入金额完成充值激活账户！")
+        elif st.session_state.wallet < cost_dt: st.error("❌ 余额不足！")
         else:
             st.session_state.wallet -= cost_dt
             pool = list(range(1, 50))
@@ -309,7 +331,7 @@ if st.session_state.bet_history:
             win_special = latest_draw["special"]
             win_sum = 0
             for bet in st.session_state.bet_history:
-                if bet["状态"] == "等待开奖":
+                if bet["状态"] == "娱乐盘等待奖":
                     raw = bet["原始数据"]
                     if bet["玩法"] in ["手选单式", "一马中特"]:
                         match_m = len(set(raw["ping"]) & set(win_main))
@@ -348,3 +370,30 @@ with st.expander(f"📅 点击展开/查阅全网最新 50 期开奖真实历史
             正码: {', '.join(f'{n:02d}' for n in draw['numbers'])} | <span style="color:#dc143c; font-weight:bold;">特别号: {draw['special']:02d}</span>
         </div>
         """, unsafe_allow_html=True)
+
+# ----------------- 🔒【第六步：加设隐藏后台管理权限控制台】 -----------------
+st.write("")
+with st.expander("⚙️ 🔒 预言家控制台 (管理员后台控制开关)"):
+    st.markdown("<div style='font-size:13px; color:#555; font-weight:bold;'>🛠️ 游戏大盘核心风控阀门：</div>", unsafe_allow_html=True)
+    
+    # 🔥 允许/禁止充值的核心控制开关（通过直接联动改变逻辑阀门）
+    st.session_state.allow_deposit = st.toggle("允许大盘充值模拟体验金", value=st.session_state.allow_deposit)
+    
+    if st.session_state.allow_deposit:
+        st.caption("🟢 当前状态：**充值通道正常开放**。允许普通玩家输入金额自由为虚拟账户充值。")
+    else:
+        st.caption("🔴 当前状态：**充值通道已关闭封锁**。任何充值点击都会被系统风控强行拦截报错。")
+    
+    st.divider()
+    st.markdown("<div style='font-size:13px; color:#555; font-weight:bold;'>🚨 危险高危操作区：</div>", unsafe_allow_html=True)
+    col_adm1, col_adm2 = st.columns(2)
+    with col_adm1:
+        if st.button("☠️ 一键清零玩家钱包本金", key="adm_clear_wallet"):
+            st.session_state.wallet = 0.0
+            st.session_state.has_deposited = False
+            st.rerun()
+    with col_adm2:
+        if st.button("💣 强制重置清空投注单总账", key="adm_clear_history"):
+            st.session_state.bet_history = []
+            st.session_state.last_win_msg = ""
+            st.rerun()
