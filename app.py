@@ -22,6 +22,19 @@ st.markdown("""
         box-shadow: 0px 4px 12px rgba(0,150,136,0.3);
     }
     
+    /* 1-49数字方阵点号按钮专用样式 */
+    div[data-testid="stHorizontalBlock"] button {
+        background: #ffffff !important;
+        color: #333333 !important;
+        border: 1px solid #cccccc !important;
+        border-radius: 8px !important;
+        width: 100% !important;
+        height: 40px !important;
+        padding: 0px !important;
+        font-weight: bold !important;
+        font-size: 15px !important;
+    }
+    
     .ball-container { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 5px; margin-bottom: 5px; }
     .ball { 
         width: 38px; height: 38px; line-height: 38px; border-radius: 50%; 
@@ -46,12 +59,18 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- 初始化虚拟钱包与注单历史 (Session State) ---
+# --- 初始化虚拟钱包、选号池与注单历史 (Session State) ---
 if 'wallet' not in st.session_state:
-    st.session_state.wallet = 10000.0  # 初始赠送1万虚拟体验金
+    st.session_state.wallet = 10000.0
 
 if 'bet_history' not in st.session_state:
     st.session_state.bet_history = []
+
+# 手动选号存储缓存
+if 'manual_ping' not in st.session_state:
+    st.session_state.manual_ping = []
+if 'manual_te' not in st.session_state:
+    st.session_state.manual_te = []
 
 # --- 官方49码球色定义 ---
 RED_BALLS = [1, 2, 7, 8, 12, 13, 18, 19, 23, 24, 29, 30, 34, 35, 40, 45, 46]
@@ -70,15 +89,15 @@ def fetch_live_data():
         url = "https://cpdata.io"
         response = requests.get(url, timeout=5)
         if response.status_code == 200:
-            item = response.json().get("data", [])
-            return {"issue": item.get("issue"), "date": item.get("open_time")[:10], "numbers": [int(x) for x in item.get("numbers")[:6]], "special": int(item.get("numbers"))}
+            item = response.json().get("data", [0])[0]
+            return {"issue": item.get("issue"), "date": item.get("open_time")[:10], "numbers": [int(x) for x in item.get("numbers")[:6]], "special": int(item.get("numbers")[6])}
     except Exception:
         pass
-    return {"issue": "26/051", "date": "2026-05-14", "numbers": [6, 14, 20, 23, 28, 34], "special": 49}
+    return {"issue": "26/051", "date": "2026-05-14", "numbers": [2, 7, 15, 24, 31, 42], "special": 49}
 
 latest_draw = fetch_live_data()
 
-# --- 手机顶栏：高档模拟盘钱包挂件 ---
+# --- 手机顶栏 ---
 st.title("🎰 预言家 - 模拟娱乐盘")
 st.markdown(f"""
 <div class="wallet-card">
@@ -86,8 +105,7 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# 充值体验金
-if st.button("🧧 余额不足？一键免费充值 $5000 模拟金"):
+if st.button("🧧 一键免费充值 $5000 模拟金"):
     st.session_state.wallet += 5000.0
     st.rerun()
 
@@ -104,58 +122,93 @@ st.markdown(ball_html, unsafe_allow_html=True)
 
 st.divider()
 
-# --- 三大官方主流模拟投注选号盘 ---
+# --- 功能面板大厅 ---
 st.subheader("📝 请选择模拟投注大厅")
-bet_tabs = st.tabs(["🎯 手动精准点号盘", "📊 专业复式盘", "📌 智能机选盘"])
+bet_tabs = st.tabs(["🔘 实体按钮点号盘", "📊 专业复式盘", "📌 智能机选盘"])
 
-# 1. 核心全新升级：手动精准点号盘
-with bet_tabs[0]:
-    st.markdown("### 🟢 精准自选：平码 ＋ 特码")
-    st.caption("请在下方下拉点号方阵中，手动挑选您的5个平码和1个特码组合。")
+# 1. 核心大重构：实体按钮单选点号盘
+with bet_tabs:
+    st.markdown("### 🟢 按钮式方阵精准点号")
+    st.caption("请在下方 1-49 数字矩阵中一个一个点击。系统将优先吸入 5 个平码，最后吸入 1 个特码。")
     
     bet_price = st.radio("自选下注单价", ["全注 ($10)", "半注 ($5)"], horizontal=True, key="p_manual")
     cost_manual = 10 if "全注" in bet_price else 5
-    
-    # 构建1-49的字符串选项方便点击
-    all_options = [i for i in range(1, 50)]
-    
-    # 手机交互式多选点号盘
-    selected_ping = st.multiselect("👉 请点击点选 【5个平码（正码）】", options=all_options, help="必须正好选择5个号码")
-    selected_te = st.multiselect("👉 请点击点选 【1个特码（特别号码）】", options=all_options, help="必须确认选择1个号码")
-    
-    # 动态数量提示防呆
-    st.info(f"当前状态：已选平码 {len(selected_ping)}/5 个 | 已选特码 {len(selected_te)}/1 个")
-    
-    if st.button("🛒 确认提交精准自选注单"):
-        # 执行全方位的严格逻辑自检
-        if len(selected_ping) != 5:
-            st.error("⚠️ 拦截失败：平码数量不正确！必须且只能选择 5 个平码号码。")
-        elif len(selected_te) != 1:
-            st.error("⚠️ 拦截失败：特码数量不正确！必须且只能选择 1 个特码号码。")
-        elif len(set(selected_ping) & set(selected_te)) > 0:
-            intersect = set(selected_ping) & set(selected_te)
-            st.error(f"⚠️ 拦截失败：发现重号！号码 {list(intersect)} 同时存在于平码和特码中，请重新调整！")
+
+    # 显示当前的勾选篮子数据
+    st.markdown("#### 🛒 您的选号篮子状态：")
+    col_basket1, col_basket2 = st.columns(2)
+    col_basket1.markdown(f"🟠 **已选平码 (5个)：** `{st.session_state.manual_ping}`")
+    col_basket2.markdown(f"🔵 **已选特码 (1个)：** `{st.session_state.manual_te}`")
+
+    # 1-49 按钮方阵渲染逻辑 (每行7个，共7行)
+    st.markdown("#### 🔢 1-49 摇奖点号区")
+    for row in range(7):
+        cols = st.columns(7)
+        for col in range(7):
+            num = row * 7 + col + 1
+            if num <= 49:
+                # 动态判断按钮显示后缀，增加视觉友好度
+                btn_label = f"{num:02d}"
+                if num in st.session_state.manual_ping:
+                    btn_label = f"{num:02d} 🟠"
+                elif num in st.session_state.manual_te:
+                    btn_label = f"{num:02d} 🔵"
+                
+                # 触发单个数字按钮的点击机制
+                if cols[col].button(btn_label, key=f"btn_num_{num}"):
+                    # 规则1：如果选过了，再次点击代表取消该号码
+                    if num in st.session_state.manual_ping:
+                        st.session_state.manual_ping.remove(num)
+                        st.rerun()
+                    elif num in st.session_state.manual_te:
+                        st.session_state.manual_te.remove(num)
+                        st.rerun()
+                    # 规则2：优先填满5个平码
+                    elif len(st.session_state.manual_ping) < 5:
+                        st.session_state.manual_ping.append(num)
+                        st.rerun()
+                    # 规则3：平码满了，填1个特码
+                    elif len(st.session_state.manual_te) < 1:
+                        st.session_state.manual_te.append(num)
+                        st.rerun()
+                    else:
+                        st.error("⚠️ 篮子已满！若想换号，请先点击下方的清空按钮。")
+
+    # 功能辅助按钮
+    col_op1, col_op2 = st.columns(2)
+    if col_op1.button("🗑️ 清空当前选号重新选"):
+        st.session_state.manual_ping = []
+        st.session_state.manual_te = []
+        st.rerun()
+
+    if col_op2.button("🛒 确认提交自选按钮注单"):
+        if len(st.session_state.manual_ping) != 5:
+            st.error("⚠️ 提交失败：平码必须正好挑选 5 个！")
+        elif len(st.session_state.manual_te) != 1:
+            st.error("⚠️ 提交失败：特码必须正好挑选 1 个！")
         elif st.session_state.wallet < cost_manual:
-            st.error("❌ 拦截失败：您的模拟钱包余额不足，请在顶栏免费充值。")
+            st.error("❌ 提交失败：您的虚拟体验金不足！")
         else:
-            # 扣款并打入注单总账
+            # 扣款结算并打印票根
             st.session_state.wallet -= cost_manual
-            sorted_ping = sorted(selected_ping)
-            final_te = selected_te[0]
+            sorted_ping = sorted(st.session_state.manual_ping)
+            final_te = st.session_state.manual_te[0]
             
-            # 格式化存根数据结构
-            receipt_code = f"平码:{sorted_ping} | 特码:[{final_te}]"
+            receipt_code = f"平:{sorted_ping} | 特:[{final_te}]"
             st.session_state.bet_history.append({
                 "时间": datetime.now().strftime("%H:%M:%S"),
-                "玩法": "精准自选(5平1特)",
+                "玩法": "按钮自选(5平1特)",
                 "所选号码": receipt_code,
                 "模拟下注金额": f"${cost_manual}"
             })
-            st.success(f"🎉 下注成功！电子存根已成功打印至账本底部。")
+            # 自动清空篮子方便下一注下注
+            st.session_state.manual_ping = []
+            st.session_state.manual_te = []
+            st.success("🎉 模拟出票成功！已打入下方账单存根。")
             st.rerun()
 
 # 2. 专业复式盘
-with bet_tabs[1]:
+with bet_tabs:
     st.markdown("### 🟢 复式多段组合盘")
     num_count = st.slider("请选择复式包裹号码个数", 7, 12, 7)
     total_notes = math.comb(num_count, 6)
@@ -175,7 +228,7 @@ with bet_tabs[1]:
             st.rerun()
 
 # 3. 智能机选盘
-with bet_tabs[2]:
+with bet_tabs:
     st.markdown("### 🟢 智能机选大厅")
     bet_price_dt = st.radio("机选下注单价", ["全注 ($10)", "半注 ($5)"], horizontal=True, key="p3")
     cost_dt = 10 if "全注" in bet_price_dt else 5
@@ -197,7 +250,7 @@ with bet_tabs[2]:
                     "所选号码": str(line_nums),
                     "模拟下注金额": f"${cost_dt}"
                 })
-            st.success("🎉 智能机选多注成功！已同步录入下方总账。")
+            st.success("🎉 智能机选多注成功！")
             st.rerun()
 
 # --- 历史注单存根总账本 ---
