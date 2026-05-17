@@ -130,7 +130,7 @@ with play_type[0]:
     st.header("⚡ 天算·一马中特精准单挑")
     crunch_mode = st.selectbox("核心推演心法", ["实时网络权重测算", "历史最长遗漏反弹", "热门连庄"])
     
-    if st.button("🔥 绝象推演：一马中特"):
+    if st.button("🔥 杰呀推演：一马中特"):
         progress_bar = st.progress(0)
         status_text = st.empty()
         for percent_complete in range(100):
