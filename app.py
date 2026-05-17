@@ -4,12 +4,12 @@ import math
 import pandas as pd
 import requests
 import time
-from datetime import datetime  # 🎯【核心修复】补齐时间模块，彻底消灭 NameError 注册崩溃
+from datetime import datetime
 
 # --- 页面基本配置 ---
 st.set_page_config(page_title="预言家全控模拟盘", page_icon="🔮", layout="centered")
 
-# --- 🎯 v21.0 全原生移动端像素级紧凑正圆巧克力矩阵与尊贵管理控制台样式表 ---
+# --- 🎯 v22.0 全原生移动端像素级紧凑正圆巧克力矩阵与尊贵管理控制台样式表 ---
 st.markdown("""
     <style>
     /* 极致挤压手机端四周无用边距 */
@@ -79,7 +79,7 @@ st.markdown("""
 # --- 官方49码波色库划分 ---
 RED_BALLS = [1, 2, 7, 8, 12, 13, 18, 19, 23, 24, 29, 30, 34, 35, 40, 45, 46]
 BLUE_BALLS = [3, 4, 9, 10, 14, 15, 20, 25, 26, 31, 32, 36, 37, 41, 42, 47, 48]
-GREEN_BALLS = [5, 6, 11, 15, 16, 21, 22, 27, 28, 33, 38, 39, 43, 44, 49]
+GREEN_BALLS = [5, 6, 11, 16, 17, 21, 22, 27, 28, 33, 34, 38, 39, 43, 44, 49]
 
 def get_ball_style(num):
     if num in RED_BALLS: return "draw-red"
@@ -91,7 +91,7 @@ def get_ball_color_class(num):
     if num in BLUE_BALLS: return "ball-b"
     return "ball-g"
 
-# --- ⚙️ 跨设备全局数据广播与记忆初始化 ---
+# --- ⚙️ 跨设备全局数据记忆数据库初始化 ---
 if 'users' not in st.session_state:
     st.session_state.users = {
         "admin": {"password": "888", "role": "admin", "status": "active", "wallet": 0.0},
@@ -111,7 +111,7 @@ if 'count_f' not in st.session_state: st.session_state.count_f = 7
 if 'count_dan' not in st.session_state: st.session_state.count_dan = 2
 if 'count_tuo' not in st.session_state: st.session_state.count_tuo = 6
 
-# --- 数据联网采集模块 ---
+# --- 数据采集模块 ---
 @st.cache_data(ttl=3600)
 def fetch_live_data_50():
     try:
@@ -127,10 +127,11 @@ def fetch_live_data_50():
             if live_data: return live_data
     except Exception:
         pass
-    return [{"issue": "2026/058", "date": "2026-05-18", "numbers": [1, 8, 15, 22, 29, 36], "special": 49}]
+    return [{"issue": "2026/058", "date": "2026-05-18", "numbers": [1, 2, 3, 4, 5, 6], "special": 7}]
 
 history_50 = fetch_live_data_50()
-latest_draw = history_50
+# 🔥【核心终极修复锁】精准卡位列表的第一个字典对象，彻底根除 TypeError 白屏
+latest_draw = history_50[0]
 
 # 统计历史频次
 freq_map = {i: 0 for i in range(1, 50)}
@@ -138,7 +139,7 @@ for draw in history_50:
     for n in draw["numbers"] + [draw["special"]]:
         if n in freq_map: freq_map[n] += 1
 
-# ----------------- 🚨【管理员全局红牌新用户申请提示系统】 -----------------
+# ----------------- 🚨【管理员红牌新用户申请提示系统】 -----------------
 if st.session_state.logged_in_user and st.session_state.users[st.session_state.logged_in_user]["role"] == "admin":
     pending_reg_count = len([k for k, v in st.session_state.reg_requests.items() if v["status"] == "pending"])
     pending_dep_count = len([d for d in st.session_state.deposit_requests if d["status"] == "pending"])
@@ -150,8 +151,8 @@ if st.session_state.logged_in_user and st.session_state.users[st.session_state.l
         </div>
         """, unsafe_allow_html=True)
 
-# ----------------- 🔮 网站基础置顶大厅 -----------------
-st.markdown('<div class="prophet-logo-title">🔮 预言家模拟控制大厅</div>', unsafe_allow_html=True)
+# ----------------- 🔮 网站大厅置顶 -----------------
+st.markdown('<div class="prophet-logo-title">🔮 预言家全控模拟大厅</div>', unsafe_allow_html=True)
 
 # 真实开奖球座渲染
 ball_html = '<div class="draw-container">'
@@ -197,7 +198,6 @@ if st.session_state.logged_in_user is None:
             elif r_user in st.session_state.users or r_user in st.session_state.reg_requests:
                 st.error("⚠️ 该用户名已被占用或正在等待审核！")
             else:
-                # 🎯【完美修复】由于顶部成功导入了 datetime 模块，这里提交申请将极其流畅畅通，绝无 NameError！
                 st.session_state.reg_requests[r_user] = {"password": r_pass, "status": "pending", "time": datetime.now().strftime("%H:%M")}
                 st.success("📩 申请成功！账号已成功提交至总后台，请联系管理员确认通过。")
                 time.sleep(0.5); st.rerun()
@@ -224,9 +224,9 @@ if st.session_state.logged_in_user == "admin":
             col_u1, col_u2 = st.columns()
             col_u1.write(f"👤 申请人：**{u}** | 申请时间: {st.session_state.reg_requests[u]['time']}")
             if col_u2.button("✔️ 批准开设", key=f"app_u_{u}"):
-                st.session_state.users[u] = {"password": st.session_state.reg_requests[u]["password"], "role": "user", "status": "active", "wallet": 0.0}
+                st.session_state.users[u] = {"password": st.session_state.reg_requests[u]["password"], "role": "user", "status": "pending", "wallet": 0.0}
                 st.session_state.reg_requests[u]["status"] = "approved"
-                st.success(f"已成功为 [{u}] 开设账号，允许登入！")
+                st.success(f"已成功为 [{u}] 开设账号！")
                 st.rerun()
                 
     # 2. 审批充值
