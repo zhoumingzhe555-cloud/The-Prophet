@@ -7,28 +7,28 @@ import requests
 # --- 页面配置 ---
 st.set_page_config(page_title="预言家娱乐模拟盘", page_icon="🔮", layout="centered")
 
-# --- 🎯 v15.0 终极全原生像素级紧凑正圆巧克力矩阵样式表 ---
+# --- 🎯 v15.5 终极像素级紧凑正圆巧克力矩阵样式表 ---
 st.markdown("""
     <style>
     /* 极致挤压手机端四周无用边距 */
-    .block-container { padding-top: 0.3rem !important; padding-bottom: 0.3rem !important; padding-left: 0.2rem !important; padding-right: 0.2rem !important; }
+    .block-container { padding-top: 0.2rem !important; padding-bottom: 0.2rem !important; padding-left: 0.2rem !important; padding-right: 0.2rem !important; }
     
-    /* 核心行动大按钮（确认下注、对奖、充值） */
+    /* 核心行动大按钮 */
     div[data-testid="stVerticalBlock"] .stButton>button { 
         background: linear-gradient(135deg, #4b0082, #8a2be2) !important; 
-        color: white !important; border-radius: 25px !important; width: 100% !important; height: 44px !important; 
+        color: white !important; border-radius: 25px !important; width: 100% !important; height: 42px !important; 
         font-size: 15px !important; font-weight: bold !important; border: none !important;
         box-shadow: 0px 4px 10px rgba(138,43,226,0.3);
     }
     
-    /* 🔥【绝杀技：强控手机端所有列容器必须横排，铁板一块雷打不动】 */
+    /* 强控手机端所有列容器必须横排，铁板一块雷打不动 */
     div[data-testid="stHorizontalBlock"] {
         display: flex !important;
         flex-direction: row !important;
         flex-wrap: nowrap !important;
-        gap: 3px !important;            /* 水平间距压缩 */
+        gap: 2px !important;            /* 水平左右压缩 */
         margin-top: 0px !important;
-        margin-bottom: 2px !important;  /* 纵向间距压缩至 2 像素，消除大白区 */
+        margin-bottom: 1px !important;  /* 🔥【行距极致压榨】纵向行间距降到1像素，彻底消除大空白 */
         padding: 0px !important;
         width: 100% !important;
     }
@@ -36,51 +36,51 @@ st.markdown("""
         flex: 1 1 0% !important; min-width: 0 !important; padding: 0 !important; margin: 0 !important;
     }
     
-    /* 🔢 将 1-49 所有原生按钮强行雕刻成完美正圆彩票球体 */
+    /* 🔢 将 1-49 所有原生按钮强行雕刻成完美正圆纯净球体 */
     .num-ball-wrap button {
         color: white !important;
         font-weight: bold !important;
         font-size: 15px !important;
         border: none !important;
-        border-radius: 50% !important;   /* 完美正圆 */
+        border-radius: 50% !important;   
         width: 100% !important;
-        aspect-ratio: 1 / 1 !important;  /* 高宽死锁 1:1 */
+        aspect-ratio: 1 / 1 !important;  /* 高宽死锁 1:1 正圆 */
         padding: 0px !important;
         margin: 0px auto !important;
-        box-shadow: 1px 1px 3px rgba(0,0,0,0.15) !important;
+        box-shadow: 1px 1px 2px rgba(0,0,0,0.15) !important;
         display: flex !important; align-items: center !important; justify-content: center !important;
     }
     
-    /* 官方标准的红、蓝、绿三色高光 */
+    /* 三色球高光 */
     .ball-r button { background: linear-gradient(135deg, #ff4d4d, #cc0000) !important; }
     .ball-b button { background: linear-gradient(135deg, #4da6ff, #0066cc) !important; }
     .ball-g button { background: linear-gradient(135deg, #47d147, #009900) !important; }
     
-    /* 勾选高亮状态：蜕变为奢华金黄立体球 */
+    /* 勾选高亮金黄立体球 */
     .ball-s button {
         background: linear-gradient(135deg, #ffd700, #ff8c00) !important;
         color: #1a1a1a !important;
         font-weight: 900 !important;
-        border: 2px solid #ffffff !important;
-        box-shadow: 0px 0px 5px #ffd700 !important;
+        border: 1.5px solid #ffffff !important;
+        box-shadow: 0px 0px 4px #ffd700 !important;
     }
     
     /* 置顶巨型开奖号码盘样式 */
-    .draw-container { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 2px; margin-bottom: 4px; justify-content: center; }
-    .draw-ball { width: 40px; height: 40px; line-height: 40px; border-radius: 50%; color: white; text-align: center; font-weight: bold; font-size: 15px; box-shadow: 1px 2px 5px rgba(0,0,0,0.2); }
+    .draw-container { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 1px; margin-bottom: 2px; justify-content: center; }
+    .draw-ball { width: 38px; height: 38px; line-height: 38px; border-radius: 50%; color: white; text-align: center; font-weight: bold; font-size: 15px; box-shadow: 1px 2px 4px rgba(0,0,0,0.15); }
     .draw-red { background: linear-gradient(135deg, #ff4d4d, #cc0000); }
     .draw-blue { background: linear-gradient(135deg, #4da6ff, #0066cc); }
     .draw-green { background: linear-gradient(135deg, #47d147, #009900); }
     
-    .wallet-card-mini { background: linear-gradient(135deg, #111, #222); color: #ffd700; padding: 7px; border-radius: 8px; text-align: center; font-weight: bold; font-size: 13px; border: 1px solid #333; }
-    .rank-badge { background: #8a2be2; color: white; padding: 1px 5px; border-radius: 6px; font-size: 10px; margin-left: 3px; }
+    .wallet-card-mini { background: linear-gradient(135deg, #111, #222); color: #ffd700; padding: 6px; border-radius: 6px; text-align: center; font-weight: bold; font-size: 12px; border: 1px solid #333; }
+    .rank-badge { background: #8a2be2; color: white; padding: 1px 4px; border-radius: 5px; font-size: 10px; margin-left: 2px; }
     </style>
     """, unsafe_allow_html=True)
 
 # --- 官方49码球色严格定义 ---
-RED_BALLS = [1, 2, 7, 8, 12, 13, 18, 19, 23, 24, 29, 30, 34, 35, 40, 45, 46]
-BLUE_BALLS = [3, 4, 9, 10, 14, 15, 20, 25, 26, 31, 36, 37, 41, 42, 47, 48]
-GREEN_BALLS = [5, 6, 11, 16, 17, 21, 22, 27, 28, 32, 33, 38, 39, 43, 44, 49]
+RED_BALLS = [1,2,7,8,12,13,18,19,23,24,29,30,34,35,40,45,46]
+BLUE_BALLS = [3,4,9,10,14,15,20,25,26,31,36,37,41,42,47,48]
+GREEN_BALLS = [5,6,11,16,17,21,22,27,28,32,33,38,39,43,44,49]
 
 def get_ball_style(num):
     if num in RED_BALLS: return "draw-red"
@@ -92,7 +92,7 @@ def get_ball_color_class(num):
     if num in BLUE_BALLS: return "ball-b"
     return "ball-g"
 
-# --- 初始化 Session State 核心数据锁 ---
+# --- 初始化 Session State ---
 if 'wallet' not in st.session_state: st.session_state.wallet = 10000.0
 if 'bet_history' not in st.session_state: st.session_state.bet_history = []
 if 'manual_ping' not in st.session_state: st.session_state.manual_ping = []
@@ -128,16 +128,21 @@ def fetch_live_data_50():
 history_50 = fetch_live_data_50()
 latest_draw = history_50[0]
 
-# ----------------- 📡【第一步：官方开奖看板高能置顶】 -----------------
-st.write(f"📡 **官方实时同步**：第 **{latest_draw['issue']}** 期 ({latest_draw['date']})")
-
+# ----------------- 📡【第一步：开奖号码绝对置顶】 -----------------
 ball_html = '<div class="draw-container">'
 for num in latest_draw['numbers']:
     ball_html += f'<div class="draw-ball {get_ball_style(num)}">{num}</div>'
 ball_html += f'<div class="draw-ball {get_ball_style(latest_draw["special"])}">{latest_draw["special"]}</div></div>'
 st.markdown(ball_html, unsafe_allow_html=True)
 
-# ----------------- 🪙【第二步：资产钱包小挂件】 -----------------
+# ----------------- 📅【第二步：修复：开奖期数、日期及预报完美移到号码球下方】 -----------------
+col_info1, col_info2 = st.columns(2)
+with col_info1:
+    st.markdown(f"<div style='font-size:12px;color:#333;font-weight:bold;margin-top:2px;'>📡 第 {latest_draw['issue']} 期开奖 ({latest_draw['date']})</div>", unsafe_allow_html=True)
+with col_info2:
+    st.markdown("<div style='font-size:12px;color:#8a2be2;font-weight:bold;text-align:right;'>📢 下期截止：05-19 21:15</div>", unsafe_allow_html=True)
+
+# ----------------- 🪙【第三步：资产钱包与充值小挂件】 -----------------
 def get_player_rank(balance):
     if balance >= 50000: return "🏆神算"
     if balance >= 20000: return "💎金手"
@@ -153,9 +158,7 @@ with col_w2:
         st.session_state.wallet += 5000.0
         st.rerun()
 
-st.write("")
-
-# ----------------- 🛠️【第三步：纯原生药丸长条玩法大厅】 -----------------
+# ----------------- 🛠️【第四步：纯原生药丸长条玩法大厅】 -----------------
 nav_cols = st.columns(4)
 tabs_list = ["自选平特", "一马中特", "标准复式", "黄金胆拖"]
 
@@ -163,25 +166,22 @@ for idx, tab_name in enumerate(tabs_list):
     is_active = (st.session_state.current_tab == tab_name)
     display_label = f"⭐ {tab_name}" if is_active else tab_name
     with nav_cols[idx]:
-        # 如果是选中项，原生调用高亮
         if st.button(display_label, key=f"nav_tab_{idx}"):
             st.session_state.current_tab = tab_name
             st.rerun()
 
 st.divider()
 
-# ----------------- 🎰【第四步：核心玩法区域分流】 -----------------
+# ----------------- 🎰【第五步：核心玩法区（巧克力矩阵压缩版）】 -----------------
 
-# 玩法 A：分离自选平特大厅
 if st.session_state.current_tab == "自选平特":
     st.markdown("### 🟢 平特自选（5平码 + 1特码）")
     st.info(f"🛒 选号篮子：平码【{len(st.session_state.manual_ping)}/5】 | 特码【{len(st.session_state.manual_te)}/1】")
     
-    # 区域1：平码巧克力矩阵
     st.markdown("**🟠 选 5 个【平码（正码）】：**")
     st.markdown('<div class="num-ball-wrap">', unsafe_allow_html=True)
     for row in range(7):
-        cols = st.columns([1,1,1,1,1,1,1]) # 极致等比铁板死锁横排
+        cols = st.columns(7) 
         for col in range(7):
             num = row * 7 + col + 1
             if num <= 49:
@@ -198,11 +198,10 @@ if st.session_state.current_tab == "自选平特":
     st.markdown('</div>', unsafe_allow_html=True)
 
     st.write("")
-    # 区域2：特码巧克力矩阵
     st.markdown("**🔵 选 1 个【特码（特别号码）】：**")
     st.markdown('<div class="num-ball-wrap">', unsafe_allow_html=True)
     for row in range(7):
-        cols = st.columns([1,1,1,1,1,1,1])
+        cols = st.columns(7)
         for col in range(7):
             num = row * 7 + col + 1
             if num <= 49:
@@ -239,12 +238,11 @@ if st.session_state.current_tab == "自选平特":
             st.success("🎉 下注成功！已同步录入底部总账记录。")
             st.rerun()
 
-# 玩法 B：一马中特大厅
 elif st.session_state.current_tab == "一马中特":
     st.markdown("### 🎯 一马中特单挑（每注$50）")
     st.markdown('<div class="num-ball-wrap">', unsafe_allow_html=True)
     for row in range(7):
-        cols = st.columns([1,1,1,1,1,1,1])
+        cols = st.columns(7)
         for col in range(7):
             num = row * 7 + col + 1
             if num <= 49:
@@ -260,7 +258,6 @@ elif st.session_state.current_tab == "一马中特":
                     st.markdown('</div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
-# 玩法 C：标准复式
 elif st.session_state.current_tab == "标准复式":
     st.markdown("### 📊 标准复式加减盘（每注$10）")
     col_f_sub, col_f_val, col_f_add = st.columns(3)
@@ -280,7 +277,6 @@ elif st.session_state.current_tab == "标准复式":
             st.session_state.bet_history.append({"玩法": f"复式({st.session_state.count_f}码)", "所选号码": str(f_nums), "单价": cost_f, "原始数据": {"ping": f_nums, "te": None}, "状态": "等待开奖"})
             st.success("🎉 复式注单生成成功！"); st.rerun()
 
-# 玩法 D：黄金胆拖
 elif st.session_state.current_tab == "黄金胆拖":
     st.markdown("### 🎲 胆拖组合盘（每注$10）")
     st.write("1. 调节【胆码】个数 (1-5个)：")
@@ -318,7 +314,6 @@ if st.session_state.bet_history:
             win_main = latest_draw["numbers"]
             win_special = latest_draw["special"]
             win_sum = 0
-            
             for bet in st.session_state.bet_history:
                 if bet["状态"] == "等待开奖":
                     raw = bet["原始数据"]
@@ -336,18 +331,15 @@ if st.session_state.bet_history:
                         match_any = len(set(raw["ping"]) & set(win_main))
                         if match_any >= 3: st.session_state.wallet += 160.0; win_sum += 160; bet["状态"] = f"🎉 中码！+$160"
                         else: bet["状态"] = "❌ 未中奖"
-            
-            st.session_state.last_win_msg = f"🔮【预言家喜报】本轮结算结算斩获模拟金 HK$ {win_sum:,.0f}！💰 当前总资产：HK$ {st.session_state.wallet:,.0f}！🔥"
+            st.session_state.last_win_msg = f"🔮【预言家喜报】战报：本轮结算结算斩获模拟金 HK$ {win_sum:,.0f}！💰 当前总资产：HK$ {st.session_state.wallet:,.0f}！🔥"
             st.rerun()
             
     if col_pay2.button("🗑️ 清空账本历史记录", key="clear_all_v11"):
         st.session_state.bet_history = []
         st.session_state.last_win_msg = ""
         st.rerun()
-        
     df_history = pd.DataFrame(st.session_state.bet_history)
     st.dataframe(df_history, use_container_width=True, hide_index=True)
-    
     if st.session_state.last_win_msg:
         st.text_area("📋 【中奖喜报】", value=st.session_state.last_win_msg, height=90)
 else:
