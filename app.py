@@ -9,7 +9,7 @@ from datetime import datetime
 # --- 页面配置 ---
 st.set_page_config(page_title="预言家大满贯盘", page_icon="🔮", layout="centered")
 
-# --- 🎯 v11.0 像素级无缝巧克力方阵与幻彩 UI 样式表 ---
+# --- 🎯 v11.5 终极首屏开奖置顶与极致无缝巧克力方阵 UI 样式表 ---
 st.markdown("""
     <style>
     .block-container { padding-top: 0.4rem; padding-bottom: 0.4rem; padding-left: 0.2rem; padding-right: 0.2rem; }
@@ -43,21 +43,19 @@ st.markdown("""
     .hb-green { background: linear-gradient(135deg, #47d147, #009900) !important; }
     .hb-selected { background: linear-gradient(135deg, #ffd700, #ff8c00) !important; color: #1a1a1a !important; font-weight: 900 !important; border: 1.5px solid #ffffff !important; box-shadow: 0px 0px 5px #ffd700 !important; }
     
-    .ball-container { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; margin-bottom: 4px; }
-    .ball { width: 34px; height: 34px; line-height: 34px; border-radius: 50%; color: white; text-align: center; font-weight: bold; font-size: 13px; box-shadow: 1px 2px 4px rgba(0,0,0,0.15); }
-    .ball-red { background: linear-gradient(135deg, #dc143c, #960018); }
-    .ball-blue { background: linear-gradient(135deg, #1e90ff, #002fa7); }
-    .ball-green { background: linear-gradient(135deg, #2e8b57, #124e2c); }
+    /* 置顶巨型开奖号布局 */
+    .ball-container { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 5px; margin-bottom: 5px; justify-content: center; }
+    .ball { width: 44px; height: 44px; line-height: 44px; border-radius: 50%; color: white; text-align: center; font-weight: bold; font-size: 16px; box-shadow: 1px 3px 6px rgba(0,0,0,0.2); }
+    .ball-red { background: linear-gradient(135deg, #ff4d4d, #cc0000); }
+    .ball-blue { background: linear-gradient(135deg, #4da6ff, #0066cc); }
+    .ball-green { background: linear-gradient(135deg, #47d147, #009900); }
     
-    .wallet-card { background: linear-gradient(135deg, #111, #222); color: #ffd700; padding: 10px; border-radius: 12px; text-align: center; margin-bottom: 8px; font-weight: bold; font-size: 15px; }
-    .mobile-card { background-color: #f8fafc; padding: 8px; border-radius: 10px; border-left: 5px solid #8a2be2; margin-bottom: 8px; }
-    
-    /* 段位高亮 */
-    .rank-badge { background: #8a2be2; color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px; margin-left: 5px; }
+    .wallet-card-mini { background: linear-gradient(135deg, #111, #222); color: #ffd700; padding: 8px; border-radius: 8px; text-align: center; font-weight: bold; font-size: 13px; border: 1px solid #333; }
+    .rank-badge { background: #8a2be2; color: white; padding: 1px 6px; border-radius: 8px; font-size: 10px; margin-left: 3px; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- 🎯【核心修复】官方49码完整波色划分定义 ---
+# --- 官方49码球色划分 ---
 RED_BALLS = [1, 2, 7, 8, 12, 13, 18, 19, 23, 24, 29, 30, 34, 35, 40, 45, 46]
 BLUE_BALLS = [3, 4, 9, 10, 14, 15, 20, 25, 26, 31, 36, 37, 41, 42, 47, 48]
 GREEN_BALLS = [5, 6, 11, 16, 17, 21, 22, 27, 28, 32, 33, 38, 39, 43, 44, 49]
@@ -106,36 +104,19 @@ def fetch_live_data_50():
     return [{"issue": "26/051", "date": "2026-05-14", "numbers": [2, 7, 15, 24, 31, 42], "special": 49}]
 
 history_50 = fetch_live_data_50()
-latest_draw = history_50
+latest_draw = history_50[0]
 
-# --- 荣誉段位逻辑 ---
-def get_player_rank(balance):
-    if balance >= 50000: return "🏆 至尊神算"
-    if balance >= 20000: return "💎 黄金手脑"
-    if balance >= 10000: return "🌟 新晋预言家"
-    return "☘️ 见习彩民"
+# ----------------- 📡 🔥【核心优化：开奖结果绝对置顶】 -----------------
+st.markdown(f"<div style='font-size:14px;color:#555;font-weight:bold;margin-bottom:2px;text-align:center;'>📡 官方同步最新开奖：第 {latest_draw['issue']} 期 ({latest_draw['date']})</div>", unsafe_allow_html=True)
 
-current_rank = get_player_rank(st.session_state.wallet)
-
-# --- 顶栏挂件 ---
-st.title("🔮 预言家 - v11.0 荣耀满贯版")
-st.markdown(f'<div class="wallet-card">🪙 资产余额：HK$ {st.session_state.wallet:,.2f} <span class="rank-badge">{current_rank}</span></div>', unsafe_allow_html=True)
-
-col_top1, col_top2 = st.columns(2)
-if col_top1.button("🧧 免费充值 $5000 模拟金", key="top_up_v11"):
-    st.session_state.wallet += 5000.0
-    st.rerun()
-with col_top2:
-    st.markdown("<div style='font-size:12px;color:#8a2be2;text-align:right;font-weight:bold;'>📢 下期截止预报：<br>2026-05-19 21:15 (周二)</div>", unsafe_allow_html=True)
-
-# 最新开奖看板
-st.markdown(f'<div class="mobile-card"><div style="font-size:13px; color:#666;">📡 <b>官方实时同步中</b>：第 <b>{latest_draw["issue"]}</b> 期 ({latest_draw["date"]})</div></div>', unsafe_allow_html=True)
+# 渲染巨型开奖号码球
 ball_html = '<div class="ball-container">'
-for num in latest_draw['numbers']: ball_html += f'<div class="ball {get_ball_style(num)}">{num}</div>'
+for num in latest_draw['numbers']:
+    ball_html += f'<div class="ball {get_ball_style(num)}">{num}</div>'
 ball_html += f'<div class="ball {get_ball_style(latest_draw["special"])}">{latest_draw["special"]}</div></div>'
 st.markdown(ball_html, unsafe_allow_html=True)
 
-st.divider()
+st.write("")
 
 # ----------------- 📡 高级接口事件捕获系统 -----------------
 click_event = st.query_params
@@ -165,8 +146,24 @@ if "click_one" in click_event:
         st.toast(f"🎉 特码【{clicked_num:02d}】成功下注！")
     st.query_params.clear(); st.rerun()
 
+
+# --- 🪙 压缩版紧凑资产监控挂件（左右双列缩减垂直高度） ---
+def get_player_rank(balance):
+    if balance >= 50000: return "🏆神算"
+    if balance >= 20000: return "💎金手"
+    return "🌟预言家"
+
+current_rank = get_player_rank(st.session_state.wallet)
+
+col_w1, col_w2 = st.columns(2)
+with col_w1:
+    st.markdown(f'<div class="wallet-card-mini">🪙 余额: ${st.session_state.wallet:,.0f} <span class="rank-badge">{current_rank}</span></div>', unsafe_allow_html=True)
+with col_w2:
+    if st.button("🧧 充值 $5000 体验金", key="top_up_v11"):
+        st.session_state.wallet += 5000.0
+        st.rerun()
+
 # --- 🛠️ 原生 HTML 玩法导航大厅 ---
-st.subheader("📝 请点选模拟玩法大厅")
 tabs_map = {"自选平特": "自选平特", "一马中特": "一马中特", "标准复式": "标准复式", "黄金胆拖": "黄金胆拖"}
 html_nav = '<div class="html-nav-container">'
 for key_name, display_name in tabs_map.items():
@@ -269,14 +266,14 @@ elif st.session_state.current_tab == "黄金胆拖":
 
 st.markdown('</div>', unsafe_allow_html=True)
 
-# --- 模拟账单存根与优化版派彩系统 ---
+# --- 模拟账单存根与一键派彩系统 ---
 st.divider()
 st.header("🧾 模拟投注账单存根总账")
 
 if st.session_state.bet_history:
     col_pay1, col_pay2 = st.columns(2)
     if col_pay1.button("🔥 一键对奖·自动派彩", key="auto_payout_engine"):
-        with st.spinner("数据对冲碰撞中..."):
+        with st.spinner("数据对冲 Axel 中..."):
             time.sleep(0.5)
             win_main = latest_draw["numbers"]
             win_special = latest_draw["special"]
@@ -300,7 +297,7 @@ if st.session_state.bet_history:
                         if match_any >= 3: st.session_state.wallet += 160.0; win_sum += 160; bet["状态"] = f"🎉 中码！+$160"
                         else: bet["状态"] = "❌ 未中奖"
             
-            st.session_state.last_win_msg = f"🔮【预言家娱乐模拟盘·喜报】\n时间：{datetime.now().strftime('%H:%M:%S')}\n玩家成功进行全网自动派彩对奖结算！\n🎯 本轮共计斩获模拟体验金：HK$ {win_sum:,.2f}！\n💰 当前荣誉身价总额：HK$ {st.session_state.wallet:,.2f}，特此公告群友！🔥"
+            st.session_state.last_win_msg = f"🔮【预言家娱乐模拟盘·喜报】\n本轮共计斩获模拟体验金：HK$ {win_sum:,.0f}！\n💰 当前荣誉身价：HK$ {st.session_state.wallet:,.0f}！🔥"
             st.rerun()
             
     if col_pay2.button("🗑️ 清空账本历史记录", key="clear_all_v11"):
@@ -312,33 +309,15 @@ if st.session_state.bet_history:
     st.dataframe(df_history, use_container_width=True, hide_index=True)
     
     if st.session_state.last_win_msg:
-        st.text_area("📋 【中奖喜报】长按下方区域全选复制，发送给朋友炫耀战绩吧！", value=st.session_state.last_win_msg, height=110)
+        st.text_area("📋 【中奖喜报】", value=st.session_state.last_win_msg, height=90)
 else:
-    st.caption("📂 暂无下注记录。请在上方选择玩法投注。")
+    st.caption("📂 暂无下注记录。")
 
-# --- 📊 50期大数据图表与多维度分析雷达 ---
+# --- 大数据直方图 ---
 st.divider()
-st.header("📊 50期网络源·智能多维度走势雷达")
-
-total_big, total_small = 0, 0
-total_odd, total_even = 0, 0
+st.header("📊 50期正码热度排行榜")
 hot_counts = {i: 0 for i in range(1, 50)}
-
 for draw in history_50:
-    for n in draw["numbers"]:
-        hot_counts[n] += 1
-        if n >= 25: total_big += 1
-        else: total_small += 1
-        if n % 2 != 0: total_odd += 1
-        else: total_even += 1
-
-col_stat1, col_stat2 = st.columns(2)
-with col_stat1: st.metric("50期正码大小倾向 (大球/小球)", f"{total_big} / {total_small}")
-with col_stat2: st.metric("50期正码单双倾向 (单数/双数)", f"{total_odd} / {total_even}")
-
-st.write("📈 **正码全频热度直方图（横向滚动查看）：**")
-df_chart = pd.DataFrame.from_dict(hot_counts, orient='index', columns=['50期出号频次'])
+    for n in draw["numbers"]: hot_counts[n] += 1
+df_chart = pd.DataFrame(pd.Series(hot_counts), columns=['50期出号频次'])
 st.bar_chart(df_chart)
-
-st.divider()
-st.caption("⚠️ 声明：本系统已开启官方网络源自动同步。模拟游戏纯属公益娱乐工具，请理性对待。")
