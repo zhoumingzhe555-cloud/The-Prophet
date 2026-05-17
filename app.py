@@ -1,4 +1,3 @@
-1 Enter file contents here
 import streamlit as st
 import random
 import pandas as pd
@@ -7,10 +6,9 @@ import time
 # --- 页面配置 ---
 st.set_page_config(page_title="预言家 - 六合彩智能分析", page_icon="🔮", layout="centered")
 
-# --- 自定义样式 (让它看起来更像一个专业的“预言”工具) ---
+# --- 自定义样式 ---
 st.markdown("""
     <style>
-    .main { background-color: #1a1a1a; color: #ffffff; }
     .stButton>button { background-color: #4b0082; color: white; border-radius: 20px; width: 100%; }
     .ball { display: inline-block; width: 40px; height: 40px; line-height: 40px; 
             border-radius: 50%; background: #2e8b57; color: white; text-align: center; 
@@ -22,9 +20,8 @@ st.markdown("""
 st.title("🔮 预言家 (The Prophet)")
 st.subheader("—— 基于概率逻辑的六合彩深度辅助系统")
 
-# --- 模拟自动抓取模块 ---
+# --- 数据模块 ---
 def get_latest_results():
-    # 实际开发时这里接入爬虫，目前模拟最新数据
     return {
         "issue": "2026/048",
         "date": "2026-05-07",
@@ -55,11 +52,9 @@ if st.button("启动预言仪式"):
         
         # 核心算法逻辑
         if mode == "频率优先 (Hot)":
-            # 模拟：从历史热点区间选号
-            picks = sorted(random.sample([2, 8, 14, 23, 28, 30, 49, 13, 24], 6))
+            picks = sorted(random.sample([2, 6, 8, 14, 20, 23, 28, 34, 47], 6))
         elif mode == "遗漏追击 (Cold)":
-            # 模拟：选择近期未出现的区间
-            picks = sorted(random.sample([1, 10, 17, 32, 40, 44, 45, 46], 6))
+            picks = sorted(random.sample([11, 17, 25, 32, 40, 44, 49], 6))
         else:
             picks = sorted(random.sample(range(1, 50), 6))
             
