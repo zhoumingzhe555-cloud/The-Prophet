@@ -9,11 +9,11 @@ from datetime import datetime
 # --- 页面配置 ---
 st.set_page_config(page_title="预言家大满贯盘", page_icon="🔮", layout="centered")
 
-# --- 🎯 手机端强控 7×7 正圆横向排列样式表 (完美解决竖排Bug) ---
+# --- 🎯 终极全彩正圆巧克力方阵样式表（完美解决行间距空白） ---
 st.markdown("""
     <style>
-    /* 缩减手机端四周留白 */
-    .block-container { padding-top: 0.8rem; padding-bottom: 0.8rem; padding-left: 0.4rem; padding-right: 0.4rem; }
+    /* 极致缩减手机端四周留白 */
+    .block-container { padding-top: 0.5rem; padding-bottom: 0.5rem; padding-left: 0.4rem; padding-right: 0.4rem; }
     
     /* 核心行动大按钮 */
     .stButton>button { 
@@ -29,17 +29,18 @@ st.markdown("""
         font-size: 12px !important; height: 38px !important; border-radius: 10px !important;
     }
     
-    /* 🔥【核心修复】强行命令 Streamlit 在手机端必须横向排列，绝对不允许自动坍塌成竖排！ */
+    /* 强控手机端横向排开，绝不允许自动竖排 */
     div[data-testid="stHorizontalBlock"] {
         display: flex !important;
-        flex-direction: row !important; /* 强制横向 */
-        flex-wrap: nowrap !important;   /* 绝对不换行 */
-        gap: 2px !important;            /* 压缩球间距 */
-        margin-bottom: 2px !important;
-        width: 100% !important;
+        flex-direction: row !important; 
+        flex-wrap: nowrap !important;   
+        gap: 3px !important;            /* 压缩球左右间距 */
+        margin-top: 0px !important;     /* 清除顶部溢出 */
+        margin-bottom: -2px !important; /* 🔥【核心微调】挤压上下行距，彻底消除白区 */
+        padding: 0px !important;
     }
     
-    /* 精准控制每一个多列容器的手机占比，平分横向空间 */
+    /* 精准控制多列在手机端的占比 */
     div[data-testid="stHorizontalBlock"] > div {
         flex: 1 1 0% !important;
         min-width: 0 !important;
@@ -53,12 +54,15 @@ st.markdown("""
         font-weight: bold !important; 
         font-size: 14px !important;
         border: none !important; 
-        border-radius: 50% !important; /* 完美正圆 */
-        width: 100% !important;        /* 自适应宽度 */
-        aspect-ratio: 1 / 1 !important;/* 高宽绝对1:1确保正圆 */
+        border-radius: 50% !important; 
+        width: 100% !important;        
+        aspect-ratio: 1 / 1 !important;/* 锁死1:1正圆 */
         padding: 0px !important;
         margin: 0px auto !important;
-        box-shadow: 1px 2px 4px rgba(0,0,0,0.2) !important;
+        box-shadow: 1px 2px 4px rgba(0,0,0,0.15) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
     }
     
     /* 官方红、蓝、绿三色高光 */
@@ -112,7 +116,7 @@ def get_ball_color_class(num):
     if num in BLUE_BALLS: return "btn-blue"
     return "btn-green"
 
-# --- 初始化大满贯 Session State ---
+# --- 初始化 Session State ---
 if 'wallet' not in st.session_state: st.session_state.wallet = 10000.0
 if 'bet_history' not in st.session_state: st.session_state.bet_history = []
 if 'manual_ping' not in st.session_state: st.session_state.manual_ping = []
@@ -253,7 +257,7 @@ elif st.session_state.current_tab == "🎯 一马中特":
                     else:
                         st.session_state.wallet -= 50
                         st.session_state.bet_history.append({
-                            "玩法": "one_match", "所选号码": f"特码:[{num:02d}]", 
+                            "玩法": "手选单式", "所选号码": f"特码:[{num:02d}]", 
                             "单价": 50, "原始数据": {"ping": [], "te": num}, "状态": "等待开奖"
                         })
                         st.success(f"🎉 特码【{num:02d}】下注成功！")
@@ -340,11 +344,9 @@ if st.session_state.bet_history:
                         match_m = len(set(raw["ping"]) & set(win_main))
                         match_s = (raw["te"] == win_special)
                         
-                        if bet["玩法"] == "one_match" and match_s:
-                            st.session_state.wallet += 2000.0
-                            bet["状态"] = "🎉 斩获特码！+$2000"
-                        elif match_m == 6: st.session_state.wallet += 50000.0; bet["状态"] = "🎉 头奖！+$50000"
+                        if match_m == 6: st.session_state.wallet += 50000.0; bet["状态"] = "🎉 头奖！+$50000"
                         elif match_m == 3: st.session_state.wallet += 40.0; bet["状态"] = "🎉 七奖！+$40"
+                        elif match_s and bet["玩法"] == "手选单式": st.session_state.wallet += 20.0; bet["状态"] = "🎉 中特码！+$20"
                         else: bet["状态"] = "❌ 未中奖"
                     else:
                         match_any = len(set(raw["ping"]) & set(win_main))
