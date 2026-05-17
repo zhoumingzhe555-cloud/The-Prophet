@@ -9,102 +9,87 @@ from datetime import datetime
 # --- 页面配置 ---
 st.set_page_config(page_title="预言家大满贯盘", page_icon="🔮", layout="centered")
 
-# --- 🎯 终极全彩正圆巧克力方阵样式表（完美解决行间距空白） ---
+# --- 🎯 极致手机端像素级压缩样式表 (一屏看全 49 码的秘诀) ---
 st.markdown("""
     <style>
-    /* 极致缩减手机端四周留白 */
-    .block-container { padding-top: 0.5rem; padding-bottom: 0.5rem; padding-left: 0.4rem; padding-right: 0.4rem; }
+    /* 彻底清除整个手机屏幕的无用外白边 */
+    .block-container { padding-top: 0.4rem; padding-bottom: 0.4rem; padding-left: 0.3rem; padding-right: 0.3rem; }
     
-    /* 核心行动大按钮 */
+    /* 核心行动大按钮（充值、下注、派彩） */
     .stButton>button { 
         background: linear-gradient(135deg, #4b0082, #8a2be2) !important; 
-        color: white !important; border-radius: 25px !important; width: 100% !important; height: 46px !important; 
+        color: white !important; border-radius: 25px !important; width: 100% !important; height: 44px !important; 
         font-size: 15px !important; font-weight: bold !important; border: none !important;
-        box-shadow: 0px 4px 10px rgba(138,43,226,0.3);
     }
     
-    /* 玩法导航条按钮 */
-    .nav-btn button {
-        background: linear-gradient(135deg, #2c3e50, #000000) !important;
-        font-size: 12px !important; height: 38px !important; border-radius: 10px !important;
+    /* 顶部导航卡片样式 */
+    .nav-container div[data-testid="stHorizontalBlock"] {
+        display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; gap: 4px !important; margin-bottom: 6px !important;
+    }
+    .nav-container div[data-testid="stHorizontalBlock"] button {
+        background: linear-gradient(135deg, #2c3e50, #1a252f) !important; color: white !important;
+        font-size: 11px !important; font-weight: bold !important; height: 38px !important; width: 100% !important; border-radius: 8px !important; border: 1px solid #34495e !important; aspect-ratio: auto !important;
+    }
+    .nav-container .nav-active button {
+        background: linear-gradient(135deg, #ffd700, #ff8c00) !important; color: #1a1a1a !important; border: 1px solid #ffffff !important; font-weight: 900 !important;
     }
     
-    /* 强控手机端横向排开，绝不允许自动竖排 */
-    div[data-testid="stHorizontalBlock"] {
+    /* 🔥【终极特化修复】下方 1-49 号码盘全方位像素级深度压榨，彻底清除垂直空白 */
+    .num-matrix-container {
+        margin-top: -5px !important;
+    }
+    /* 1. 强行命令包裹数字球的所有中间层组件高度归零，彻底砍断垂直拉伸 */
+    .num-matrix-container div[data-testid="stVerticalBlock"] {
+        gap: 0px !important;
+        padding: 0px !important;
+        margin: 0px !important;
+    }
+    /* 2. 强控横向 7 列横排，同时将上下行距死死卡扣在一起 */
+    .num-matrix-container div[data-testid="stHorizontalBlock"] {
         display: flex !important;
         flex-direction: row !important; 
         flex-wrap: nowrap !important;   
-        gap: 3px !important;            /* 压缩球左右间距 */
-        margin-top: 0px !important;     /* 清除顶部溢出 */
-        margin-bottom: -2px !important; /* 🔥【核心微调】挤压上下行距，彻底消除白区 */
+        gap: 3px !important;            /* 左右球间距 */
+        margin-top: 0px !important;
+        margin-bottom: 3px !important;  /* 🔥【关键参数】7行之间只有极小紧凑的 3 像素上下间歇！ */
         padding: 0px !important;
+        height: auto !important;        /* 解除任何隐式高度撑开 */
+    }
+    .num-matrix-container div[data-testid="stHorizontalBlock"] > div {
+        flex: 1 1 0% !important; min-width: 0 !important; padding: 0 !important; margin: 0 !important;
+    }
+    /* 3. 精准锁定每一个按钮为完美的自适应正圆球体 */
+    .num-matrix-container div[data-testid="stHorizontalBlock"] button {
+        color: white !important; font-weight: bold !important; font-size: 15px !important; border: none !important; 
+        border-radius: 50% !important; width: 100% !important; aspect-ratio: 1 / 1 !important; padding: 0px !important; margin: 0px auto !important;
+        box-shadow: 1px 1px 3px rgba(0,0,0,0.15) !important;
+        display: flex !important; align-items: center !important; justify-content: center !important;
     }
     
-    /* 精准控制多列在手机端的占比 */
-    div[data-testid="stHorizontalBlock"] > div {
-        flex: 1 1 0% !important;
-        min-width: 0 !important;
-        padding: 0 !important;
-        margin: 0 !important;
+    /* 三色波样式 */
+    .num-matrix-container .btn-red button { background: linear-gradient(135deg, #ff4d4d, #cc0000) !important; }
+    .num-matrix-container .btn-blue button { background: linear-gradient(135deg, #4da6ff, #0066cc) !important; }
+    .num-matrix-container .btn-green button { background: linear-gradient(135deg, #47d147, #009900) !important; }
+    /* 勾选状态 */
+    .num-matrix-container .btn-selected button { 
+        background: linear-gradient(135deg, #ffd700, #ff8c00) !important; color: #1a1a1a !important; font-weight: 900 !important; border: 2px solid #ffffff !important; box-shadow: 0px 0px 5px #ffd700 !important; 
     }
     
-    /* 1-49 数字球座：强制适配手机宽度的正圆球体 */
-    div[data-testid="stHorizontalBlock"] button {
-        color: white !important; 
-        font-weight: bold !important; 
-        font-size: 14px !important;
-        border: none !important; 
-        border-radius: 50% !important; 
-        width: 100% !important;        
-        aspect-ratio: 1 / 1 !important;/* 锁死1:1正圆 */
-        padding: 0px !important;
-        margin: 0px auto !important;
-        box-shadow: 1px 2px 4px rgba(0,0,0,0.15) !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-    }
-    
-    /* 官方红、蓝、绿三色高光 */
-    .btn-red button { background: linear-gradient(135deg, #ff4d4d, #cc0000) !important; }
-    .btn-blue button { background: linear-gradient(135deg, #4da6ff, #0066cc) !important; }
-    .btn-green button { background: linear-gradient(135deg, #47d147, #009900) !important; }
-    
-    /* 选中状态：蜕变为亮丽的金黄球 */
-    .btn-selected button { 
-        background: linear-gradient(135deg, #ffd700, #ff8c00) !important; 
-        color: #1a1a1a !important; 
-        font-weight: 900 !important; 
-        border: 2px solid #ffffff !important; 
-        box-shadow: 0px 0px 6px #ffd700 !important; 
-    }
-    
-    .ball-container { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px; margin-bottom: 5px; }
-    .ball { 
-        width: 34px; height: 34px; line-height: 34px; border-radius: 50%; 
-        color: white; text-align: center; font-weight: bold; font-size: 13px;
-        box-shadow: 1px 2px 4px rgba(0,0,0,0.15);
-    }
+    .ball-container { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; margin-bottom: 4px; }
+    .ball { width: 34px; height: 34px; line-height: 34px; border-radius: 50%; color: white; text-align: center; font-weight: bold; font-size: 13px; box-shadow: 1px 2px 4px rgba(0,0,0,0.15); }
     .ball-red { background: linear-gradient(135deg, #dc143c, #960018); }
     .ball-blue { background: linear-gradient(135deg, #1e90ff, #002fa7); }
     .ball-green { background: linear-gradient(135deg, #2e8b57, #124e2c); }
     
-    .wallet-card {
-        background: linear-gradient(135deg, #111, #222); color: #ffd700;
-        padding: 12px; border-radius: 12px; text-align: center; margin-bottom: 10px;
-        box-shadow: 0px 4px 10px rgba(0,0,0,0.3); font-weight: bold; font-size: 16px;
-    }
-    .mobile-card {
-        background-color: #f8fafc; padding: 10px; border-radius: 10px;
-        border-left: 5px solid #8a2be2; margin-bottom: 10px;
-    }
+    .wallet-card { background: linear-gradient(135deg, #111, #222); color: #ffd700; padding: 10px; border-radius: 12px; text-align: center; margin-bottom: 8px; font-weight: bold; font-size: 15px; }
+    .mobile-card { background-color: #f8fafc; padding: 8px; border-radius: 10px; border-left: 5px solid #8a2be2; margin-bottom: 8px; }
     </style>
     """, unsafe_allow_html=True)
 
 # --- 官方49码球色划分 ---
-RED_BALLS = [1, 2, 7, 8, 12, 13, 18, 19, 23, 24, 29, 30, 34, 35, 40, 45, 46]
-BLUE_BALLS = [3, 4, 9, 10, 14, 15, 20, 25, 26, 31, 36, 37, 41, 42, 47, 48]
-GREEN_BALLS = [5, 6, 11, 16, 17, 21, 22, 27, 28, 32, 33, 38, 39, 43, 44, 49]
+RED_BALLS = [1,2,7,8,12,13,18,19,23,24,29,30,34,35,40,45,46]
+BLUE_BALLS = [3,4,9,10,14,15,20,25,26,31,36,37,41,42,47,48]
+GREEN_BALLS = [5,6,11,16,17,21,22,27,28,32,33,38,39,43,44,49]
 
 def get_ball_style(num):
     if num in RED_BALLS: return "ball-red"
@@ -146,7 +131,7 @@ def fetch_live_data_50():
             if live_data: return live_data
     except Exception:
         pass
-    return [{"issue": "26/051", "date": "2026-05-14", "numbers": [2, 7, 15, 24, 31, 42], "special": 49}]
+    return [{"issue": "26/051", "date": "2026-05-14", "numbers": [2,7,15,24,31,42], "special": 49}]
 
 history_50 = fetch_live_data_50()
 latest_draw = history_50[0]
@@ -173,19 +158,26 @@ st.divider()
 
 # --- 🛠️ 纯按钮式玩法导航大厅 ---
 st.subheader("📝 请点选模拟玩法大厅")
+st.markdown('<div class="nav-container">', unsafe_allow_html=True)
 nav_cols = st.columns(4)
 tabs_list = ["🔘 自选平特", "🎯 一马中特", "📊 标准复式", "🎲 黄金胆拖"]
 
 for idx, tab_name in enumerate(tabs_list):
-    display_label = f"⭐ {tab_name}" if st.session_state.current_tab == tab_name else tab_name
+    is_active = st.session_state.current_tab == tab_name
+    display_label = tab_name[2:]
+    cls_active = "nav-active" if is_active else ""
     with nav_cols[idx]:
-        st.markdown('<div class="nav-btn">', unsafe_allow_html=True)
+        st.markdown(f'<div class="{cls_active}">', unsafe_allow_html=True)
         if st.button(display_label, key=f"nav_tab_{idx}"):
             st.session_state.current_tab = tab_name
             st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
+st.markdown('</div>', unsafe_allow_html=True)
 
 # ----------------- 核心玩法区 -----------------
+
+# 开启极度紧凑型号码盘专属隔离容器
+st.markdown('<div class="num-matrix-container">', unsafe_allow_html=True)
 
 # 1. 自选平特大厅
 if st.session_state.current_tab == "🔘 自选平特":
@@ -257,7 +249,7 @@ elif st.session_state.current_tab == "🎯 一马中特":
                     else:
                         st.session_state.wallet -= 50
                         st.session_state.bet_history.append({
-                            "玩法": "手选单式", "所选号码": f"特码:[{num:02d}]", 
+                            "玩法": "one_match", "所选号码": f"特码:[{num:02d}]", 
                             "单价": 50, "原始数据": {"ping": [], "te": num}, "状态": "等待开奖"
                         })
                         st.success(f"🎉 特码【{num:02d}】下注成功！")
@@ -324,6 +316,8 @@ elif st.session_state.current_tab == "🎲 黄金胆拖":
             st.success("🎉 胆拖组合下注成功！")
             st.rerun()
 
+st.markdown('</div>', unsafe_allow_html=True) # 关闭号码盘隔离容器
+
 # --- 模拟账单存根与一键派彩系统 ---
 st.divider()
 st.header("🧾 模拟投注账单存根总账")
@@ -364,18 +358,16 @@ if st.session_state.bet_history:
     df_history = pd.DataFrame(st.session_state.bet_history)
     st.dataframe(df_history, use_container_width=True, hide_index=True)
 else:
-    st.caption("📂 暂无下注记录。请在上方纯按钮大厅选号并提交。")
+    st.caption("📂 暂无下注记录。")
 
 # --- 📊 50期大数据图表看板 ---
 st.divider()
 st.header("📊 50期大数据·正码热度排行榜")
-
 hot_counts = {i: 0 for i in range(1, 50)}
 for draw in history_50:
-    for n in draw["numbers"]:
-        hot_counts[n] += 1
+    for n in draw["numbers"]: hot_counts[n] += 1
 df_chart = pd.DataFrame.from_dict(hot_counts, orient='index', columns=['50期出号频次'])
 st.bar_chart(df_chart)
 
 st.divider()
-st.caption("⚠️ 声明：本系统已开启官方网络源自动同步。开奖具备纯物理随机性，测算与派彩模块纯属模拟数字游戏，请务必理性参与。")
+st.caption("⚠️ 声明：本系统已开启官方网络源自动同步。模拟游戏纯属公益娱乐工具。")
