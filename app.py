@@ -9,11 +9,11 @@ from datetime import datetime
 # --- 页面配置 ---
 st.set_page_config(page_title="预言家大满贯盘", page_icon="🔮", layout="centered")
 
-# --- 🎯 极致手机端紧凑布局与全彩正圆球座样式表 ---
+# --- 🎯 手机端强控 7×7 正圆横向排列样式表 (完美解决竖排Bug) ---
 st.markdown("""
     <style>
-    /* 全面缩减手机端四周留白 */
-    .block-container { padding-top: 0.8rem; padding-bottom: 0.8rem; padding-left: 0.5rem; padding-right: 0.5rem; }
+    /* 缩减手机端四周留白 */
+    .block-container { padding-top: 0.8rem; padding-bottom: 0.8rem; padding-left: 0.4rem; padding-right: 0.4rem; }
     
     /* 核心行动大按钮 */
     .stButton>button { 
@@ -29,50 +29,56 @@ st.markdown("""
         font-size: 12px !important; height: 38px !important; border-radius: 10px !important;
     }
     
-    /* 极致紧凑型 7×7 网格间距压缩 */
+    /* 🔥【核心修复】强行命令 Streamlit 在手机端必须横向排列，绝对不允许自动坍塌成竖排！ */
     div[data-testid="stHorizontalBlock"] {
-        gap: 3px !important;
-        margin-bottom: -6px !important;
+        display: flex !important;
+        flex-direction: row !important; /* 强制横向 */
+        flex-wrap: nowrap !important;   /* 绝对不换行 */
+        gap: 2px !important;            /* 压缩球间距 */
+        margin-bottom: 2px !important;
+        width: 100% !important;
     }
     
-    /* 1-49 数字方阵：强制渲染为完美正圆形彩票球，去除冗余边距 */
+    /* 精准控制每一个多列容器的手机占比，平分横向空间 */
+    div[data-testid="stHorizontalBlock"] > div {
+        flex: 1 1 0% !important;
+        min-width: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    
+    /* 1-49 数字球座：强制适配手机宽度的正圆球体 */
     div[data-testid="stHorizontalBlock"] button {
         color: white !important; 
         font-weight: bold !important; 
-        font-size: 15px !important;
+        font-size: 14px !important;
         border: none !important; 
-        border-radius: 50% !important; /* 强制正圆 */
-        width: 42px !important; 
-        height: 42px !important; 
-        min-width: 42px !important;
-        max-width: 42px !important;
+        border-radius: 50% !important; /* 完美正圆 */
+        width: 100% !important;        /* 自适应宽度 */
+        aspect-ratio: 1 / 1 !important;/* 高宽绝对1:1确保正圆 */
         padding: 0px !important;
         margin: 0px auto !important;
-        line-height: 42px !important;
-        box-shadow: 1px 2px 5px rgba(0,0,0,0.2) !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
+        box-shadow: 1px 2px 4px rgba(0,0,0,0.2) !important;
     }
     
-    /* 官方红、蓝、绿三色球座高光滤镜 */
+    /* 官方红、蓝、绿三色高光 */
     .btn-red button { background: linear-gradient(135deg, #ff4d4d, #cc0000) !important; }
     .btn-blue button { background: linear-gradient(135deg, #4da6ff, #0066cc) !important; }
     .btn-green button { background: linear-gradient(135deg, #47d147, #009900) !important; }
     
-    /* 选中状态：蜕变为耀眼的高级金黄球 */
+    /* 选中状态：蜕变为亮丽的金黄球 */
     .btn-selected button { 
         background: linear-gradient(135deg, #ffd700, #ff8c00) !important; 
         color: #1a1a1a !important; 
         font-weight: 900 !important; 
         border: 2px solid #ffffff !important; 
-        box-shadow: 0px 0px 8px #ffd700 !important; 
+        box-shadow: 0px 0px 6px #ffd700 !important; 
     }
     
     .ball-container { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px; margin-bottom: 5px; }
     .ball { 
-        width: 36px; height: 36px; line-height: 36px; border-radius: 50%; 
-        color: white; text-align: center; font-weight: bold; font-size: 14px;
+        width: 34px; height: 34px; line-height: 34px; border-radius: 50%; 
+        color: white; text-align: center; font-weight: bold; font-size: 13px;
         box-shadow: 1px 2px 4px rgba(0,0,0,0.15);
     }
     .ball-red { background: linear-gradient(135deg, #dc143c, #960018); }
@@ -177,7 +183,7 @@ for idx, tab_name in enumerate(tabs_list):
 
 # ----------------- 核心玩法区 -----------------
 
-# 1. 自选平特大厅 (精简正圆矩阵)
+# 1. 自选平特大厅
 if st.session_state.current_tab == "🔘 自选平特":
     st.markdown("### 🟢 分离紧凑自选（5平码 + 1特码）")
     st.info(f"🛒 篮子状态：平码【{len(st.session_state.manual_ping)}/5】 | 特码【{len(st.session_state.manual_te)}/1】")
@@ -190,7 +196,7 @@ if st.session_state.current_tab == "🔘 自选平特":
                 if num <= 49:
                     is_sel = num in st.session_state.manual_ping
                     cls = "btn-selected" if is_sel else get_ball_color_class(num)
-                    lbl = f"{num}" # 清除冗余图标字符，确保数字在手机完美居中
+                    lbl = f"{num}"
                     st.markdown(f'<div class="{cls}">', unsafe_allow_html=True)
                     if cols[col].button(lbl, key=f"p1_{num}"):
                         if num in st.session_state.manual_ping: st.session_state.manual_ping.remove(num)
@@ -227,13 +233,13 @@ if st.session_state.current_tab == "🔘 自选平特":
             st.session_state.wallet -= 10
             st.session_state.bet_history.append({
                 "玩法": "手选单式", "所选号码": f"平:{sorted(st.session_state.manual_ping)} 特:{st.session_state.manual_te}", 
-                "单价": 10, "原始数据": {"ping": sorted(st.session_state.manual_ping), "te": st.session_state.manual_te[0]}, "状态": "等待开奖"
+                "单价": 10, "原始数据": {"ping": sorted(st.session_state.manual_ping), "te": st.session_state.manual_te}, "状态": "等待开奖"
             })
             st.session_state.manual_ping, st.session_state.manual_te = [], []
             st.success("🎉 下注成功！已存入下方账本。")
             st.rerun()
 
-# 2. 一马中特大厅 (精简正圆矩阵)
+# 2. 一马中特大厅
 elif st.session_state.current_tab == "🎯 一马中特":
     st.markdown("### 🎯 全彩正圆键盘：一马中特单挑（每注$50）")
     for row in range(7):
@@ -247,7 +253,7 @@ elif st.session_state.current_tab == "🎯 一马中特":
                     else:
                         st.session_state.wallet -= 50
                         st.session_state.bet_history.append({
-                            "玩法": "一马中特", "所选号码": f"特码:[{num:02d}]", 
+                            "玩法": "one_match", "所选号码": f"特码:[{num:02d}]", 
                             "单价": 50, "原始数据": {"ping": [], "te": num}, "状态": "等待开奖"
                         })
                         st.success(f"🎉 特码【{num:02d}】下注成功！")
@@ -330,11 +336,11 @@ if st.session_state.bet_history:
             for bet in st.session_state.bet_history:
                 if bet["状态"] == "等待开奖":
                     raw = bet["原始数据"]
-                    if bet["玩法"] in ["单式手选", "一马中特"]:
+                    if bet["玩法"] in ["手选单式", "one_match"]:
                         match_m = len(set(raw["ping"]) & set(win_main))
                         match_s = (raw["te"] == win_special)
                         
-                        if bet["玩法"] == "一马中特" and match_s:
+                        if bet["玩法"] == "one_match" and match_s:
                             st.session_state.wallet += 2000.0
                             bet["状态"] = "🎉 斩获特码！+$2000"
                         elif match_m == 6: st.session_state.wallet += 50000.0; bet["状态"] = "🎉 头奖！+$50000"
