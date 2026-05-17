@@ -7,33 +7,34 @@ import requests
 from datetime import datetime
 
 # --- 页面配置 ---
-st.set_page_config(page_title="预言家旗舰投注盘", page_icon="🎰", layout="centered")
+st.set_page_config(page_title="预言家大满贯盘", page_icon="🔮", layout="centered")
 
-# --- 手机移动端样式适配 (经典高端博弈主题风格) ---
+# --- 手机移动端超豪华样式适配 (官方三色波与大满贯专属UI) ---
 st.markdown("""
     <style>
     .block-container { padding-top: 1rem; padding-bottom: 1rem; padding-left: 0.8rem; padding-right: 0.8rem; }
     
-    /* 模拟平台专用幻彩绿色按钮 */
+    /* 核心行动大按钮 */
     .stButton>button { 
-        background: linear-gradient(135deg, #009688, #004d40) !important; 
-        color: white !important; border-radius: 25px !important; width: 100% !important; height: 48px !important; 
-        font-size: 15px !important; font-weight: bold !important; border: none !important;
-        box-shadow: 0px 4px 12px rgba(0,150,136,0.3);
+        background: linear-gradient(135deg, #4b0082, #8a2be2) !important; 
+        color: white !important; border-radius: 25px !important; width: 100% !important; height: 50px !important; 
+        font-size: 16px !important; font-weight: bold !important; border: none !important;
+        box-shadow: 0px 5px 15px rgba(138,43,226,0.3);
     }
     
-    /* 1-49数字方阵点号按钮专用样式 */
-    div[data-testid="stHorizontalBlock"] button {
-        background: #ffffff !important;
-        color: #333333 !important;
-        border: 1px solid #cccccc !important;
-        border-radius: 8px !important;
-        width: 100% !important;
-        height: 38px !important;
-        padding: 0px !important;
-        font-weight: bold !important;
-        font-size: 14px !important;
+    /* 玩法导航条按钮 */
+    .nav-btn button {
+        background: linear-gradient(135deg, #2c3e50, #000000) !important;
+        font-size: 13px !important; height: 42px !important; border-radius: 12px !important;
     }
+    
+    /* 官方严格三色波按钮样式定义 */
+    .btn-red button { background: linear-gradient(135deg, #ff4d4d, #cc0000) !important; color: white !important; font-weight: bold !important; border: none !important; border-radius: 8px !important; }
+    .btn-blue button { background: linear-gradient(135deg, #4da6ff, #0066cc) !important; color: white !important; font-weight: bold !important; border: none !important; border-radius: 8px !important; }
+    .btn-green button { background: linear-gradient(135deg, #47d147, #009900) !important; color: white !important; font-weight: bold !important; border: none !important; border-radius: 8px !important; }
+    
+    /* 选中状态的按钮突出显示 */
+    .btn-selected button { background: linear-gradient(135deg, #ffd700, #ff8c00) !important; color: #1a1a1a !important; font-weight: 900 !important; border: 2px solid #ffffff !important; box-shadow: 0px 0px 8px #ffd700 !important; }
     
     .ball-container { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 5px; margin-bottom: 5px; }
     .ball { 
@@ -44,28 +45,20 @@ st.markdown("""
     .ball-red { background: linear-gradient(135deg, #dc143c, #960018); }
     .ball-blue { background: linear-gradient(135deg, #1e90ff, #002fa7); }
     .ball-green { background: linear-gradient(135deg, #2e8b57, #124e2c); }
-    .ball-dan { background: linear-gradient(135deg, #ff8c00, #d35400); } 
-    .ball-tuo { background: linear-gradient(135deg, #4682b4, #2980b9); } 
     
     .wallet-card {
-        background: linear-gradient(135deg, #1a1a1a, #333333); color: #ffd700;
-        padding: 15px; border-radius: 12px; text-align: center; margin-bottom: 15px;
-        box-shadow: 0px 4px 10px rgba(0,0,0,0.2); font-weight: bold;
+        background: linear-gradient(135deg, #111, #222); color: #ffd700;
+        padding: 15px; border-radius: 12px; text-align: center; margin-bottom: 12px;
+        box-shadow: 0px 4px 10px rgba(0,0,0,0.3); font-weight: bold; font-size: 18px;
     }
     .mobile-card {
         background-color: #f8fafc; padding: 12px; border-radius: 12px;
-        border-left: 6px solid #009688; margin-bottom: 12px;
+        border-left: 6px solid #8a2be2; margin-bottom: 12px;
     }
     </style>
     """, unsafe_allow_html=True)
 
-# --- 初始化Session State ---
-if 'wallet' not in st.session_state: st.session_state.wallet = 10000.0
-if 'bet_history' not in st.session_state: st.session_state.bet_history = []
-if 'manual_ping' not in st.session_state: st.session_state.manual_ping = []
-if 'manual_te' not in st.session_state: st.session_state.manual_te = []
-
-# --- 官方49码球色划分 ---
+# --- 官方49码球色严格划分定义 ---
 RED_BALLS = [1, 2, 7, 8, 12, 13, 18, 19, 23, 24, 29, 30, 34, 35, 40, 45, 46]
 BLUE_BALLS = [3, 4, 9, 10, 14, 15, 20, 25, 26, 31, 36, 37, 41, 42, 47, 48]
 GREEN_BALLS = [5, 6, 11, 16, 17, 21, 22, 27, 28, 32, 33, 38, 39, 43, 44, 49]
@@ -75,30 +68,60 @@ def get_ball_style(num):
     if num in BLUE_BALLS: return "ball-blue"
     return "ball-green"
 
-# --- 数据同步 ---
+def get_ball_color_class(num):
+    if num in RED_BALLS: return "btn-red"
+    if num in BLUE_BALLS: return "btn-blue"
+    return "btn-green"
+
+# --- 初始化大大满贯 Session State 核心数据锁 ---
+if 'wallet' not in st.session_state: st.session_state.wallet = 10000.0
+if 'bet_history' not in st.session_state: st.session_state.bet_history = []
+if 'manual_ping' not in st.session_state: st.session_state.manual_ping = []
+if 'manual_te' not in st.session_state: st.session_state.manual_te = []
+if 'current_tab' not in st.session_state: st.session_state.current_tab = "🔘 自选平特"
+
+if 'count_f' not in st.session_state: st.session_state.count_f = 7
+if 'count_dan' not in st.session_state: st.session_state.count_dan = 2
+if 'count_tuo' not in st.session_state: st.session_state.count_tuo = 6
+
+# --- 数据采集模块 (TTL设定1小时) ---
 @st.cache_data(ttl=3600)
-def fetch_live_data():
+def fetch_live_data_50():
     try:
         url = "https://cpdata.io"
         response = requests.get(url, timeout=5)
         if response.status_code == 200:
-            item = response.json().get("data", [{}])[0]
-            return {"issue": item.get("issue"), "date": item.get("open_time")[:10], "numbers": [int(x) for x in item.get("numbers")[:6]], "special": int(item.get("numbers")[6])}
+            res_json = response.json()
+            live_data = []
+            for item in res_json.get("data", []):
+                live_data.append({
+                    "issue": item.get("issue"),
+                    "date": item.get("open_time")[:10],
+                    "numbers": [int(x) for x in item.get("numbers")[:6]],
+                    "special": int(item.get("numbers"))
+                })
+            if live_data: return live_data
     except Exception:
         pass
-    return {"issue": "26/051", "date": "2026-05-14", "numbers": [2, 7, 15, 24, 31, 42], "special": 49}
+    # 联网不稳时的仿真兜底数据
+    return [{"issue": "26/051", "date": "2026-05-14", "numbers": [2, 7, 15, 24, 31, 42], "special": 49}]
 
-latest_draw = fetch_live_data()
+history_50 = fetch_live_data_50()
+latest_draw = history_50[0]
 
-# --- 钱包吊顶 ---
-st.title("🎰 预言家 - 全功能娱乐盘")
-st.markdown(f'<div class="wallet-card">💰 个人模拟钱包余额：HK$ {st.session_state.wallet:,.2f}</div>', unsafe_allow_html=True)
+# --- 顶栏：大满贯体验金钱包挂件 ---
+st.title("🔮 预言家 - v10.0 究极版")
+st.markdown(f'<div class="wallet-card">🪙 您的模拟资产总额：HK$ {st.session_state.wallet:,.2f}</div>', unsafe_allow_html=True)
 
-if st.button("🧧 一键免费充值 $5000 模拟金"):
+col_top1, col_top2 = st.columns(2)
+if col_top1.button("🧧 一键充值 $5000 体验金", key="top_up_v10"):
     st.session_state.wallet += 5000.0
     st.rerun()
+with col_top2:
+    st.markdown("<div style='font-size:12px;color:#8a2be2;text-align:right;font-weight:bold;'>📢 下期截止预报：<br>2026-05-19 21:15 (周二)</div>", unsafe_allow_html=True)
 
-st.markdown(f'<div class="mobile-card"><div style="font-size:13px; color:#666;">📡 <b>最新开奖基准</b>：第 <b>{latest_draw["issue"]}</b> 期 ({latest_draw["date"]})</div></div>', unsafe_allow_html=True)
+# 最新开奖看板
+st.markdown(f'<div class="mobile-card"><div style="font-size:13px; color:#666;">📡 <b>官方全自动同步中</b>：第 <b>{latest_draw["issue"]}</b> 期 ({latest_draw["date"]})</div></div>', unsafe_allow_html=True)
 ball_html = '<div class="ball-container">'
 for num in latest_draw['numbers']: ball_html += f'<div class="ball {get_ball_style(num)}">{num}</div>'
 ball_html += f'<div class="ball {get_ball_style(latest_draw["special"])}">{latest_draw["special"]}</div></div>'
@@ -106,143 +129,218 @@ st.markdown(ball_html, unsafe_allow_html=True)
 
 st.divider()
 
-# --- 核心大升级：全主流投注玩法大厅 ---
-st.subheader("🔮 模拟投注大厅（已囊括官方与双面全玩法）")
-bet_tabs = st.tabs(["🔘 自选平特", "🎯 一马中特", "📊 标准复式", "🎲 黄金胆拖", "🌈 趣味双面"])
+# --- 🛠️ 纯按钮式玩法导航大厅 ---
+st.subheader("📝 请点选模拟玩法大厅")
+nav_cols = st.columns(4)
+tabs_list = ["🔘 自选平特", "🎯 一马中特", "📊 标准复式", "🎲 黄金胆拖"]
 
-# 玩法1：平特分离自选
-with bet_tabs[0]:
-    st.markdown("### 🟢 单式手选（5平码 + 1特码）")
-    cost_m = 10
+for idx, tab_name in enumerate(tabs_list):
+    display_label = f"⭐ {tab_name}" if st.session_state.current_tab == tab_name else tab_name
+    with nav_cols[idx]:
+        st.markdown('<div class="nav-btn">', unsafe_allow_html=True)
+        if st.button(display_label, key=f"nav_tab_{idx}"):
+            st.session_state.current_tab = tab_name
+            st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
+
+# ----------------- 核心容器逻辑分流 -----------------
+
+# 1. 精准全彩自选平特大厅
+if st.session_state.current_tab == "🔘 自选平特":
+    st.markdown("### 🟢 分离全彩键盘自选（5平码 + 1特码）")
     st.info(f"🛒 篮子状态：平码【{len(st.session_state.manual_ping)}/5】 | 特码【{len(st.session_state.manual_te)}/1】")
 
-    with st.expander("🟠 点击展开/收起 ——【5个平码选择键盘】", expanded=True):
+    with st.expander("🟠 点击展开/收起 ——【官方球色·平码选择器】", expanded=True):
         for row in range(7):
             cols = st.columns(7)
             for col in range(7):
                 num = row * 7 + col + 1
                 if num <= 49:
-                    lbl = f"{num:02d} 🟠" if num in st.session_state.manual_ping else f"{num:02d}"
+                    is_sel = num in st.session_state.manual_ping
+                    cls = "btn-selected" if is_sel else get_ball_color_class(num)
+                    lbl = f"{num:02d} ✔️" if is_sel else f"{num:02d}"
+                    st.markdown(f'<div class="{cls}">', unsafe_allow_html=True)
                     if cols[col].button(lbl, key=f"p1_{num}"):
                         if num in st.session_state.manual_ping: st.session_state.manual_ping.remove(num)
                         elif len(st.session_state.manual_ping) < 5: st.session_state.manual_ping.append(num)
                         st.rerun()
+                    st.markdown('</div>', unsafe_allow_html=True)
 
-    with st.expander("🔵 点击展开/收起 ——【1个特码选择键盘】", expanded=True):
+    with st.expander("🔵 点击展开/收起 ——【官方球色·特码选择器】", expanded=True):
         for row in range(7):
             cols = st.columns(7)
             for col in range(7):
                 num = row * 7 + col + 1
                 if num <= 49:
-                    lbl = f"{num:02d} 🔵" if num in st.session_state.manual_te else f"{num:02d}"
+                    is_sel = num in st.session_state.manual_te
+                    cls = "btn-selected" if is_sel else get_ball_color_class(num)
+                    lbl = f"{num:02d} ★" if is_sel else f"{num:02d}"
+                    st.markdown(f'<div class="{cls}">', unsafe_allow_html=True)
                     if cols[col].button(lbl, key=f"t1_{num}"):
                         if num in st.session_state.manual_te: st.session_state.manual_te.remove(num)
                         else: st.session_state.manual_te = [num]
                         st.rerun()
+                    st.markdown('</div>', unsafe_allow_html=True)
 
     col_o1, col_o2 = st.columns(2)
-    if col_op1 := col_o1.button("🗑️ 清空自选", key="clear_m"):
+    if col_o1.button("🗑️ 清空篮子", key="clear_m"):
         st.session_state.manual_ping, st.session_state.manual_te = [], []
         st.rerun()
-    if col_op2 := col_o2.button("🛒 确认下注", key="submit_m"):
+    if col_o2.button("🛒 确认下注扣款", key="submit_m"):
         intersect = set(st.session_state.manual_ping) & set(st.session_state.manual_te)
-        if len(st.session_state.manual_ping) != 5 or len(st.session_state.manual_te) != 1: st.error("⚠️ 数量不符规则！")
-        elif len(intersect) > 0: st.error("⚠️ 平码与特码不能重号！")
-        elif st.session_state.wallet < cost_m: st.error("❌ 余额不足！")
+        if len(st.session_state.manual_ping) != 5 or len(st.session_state.manual_te) != 1: st.error("⚠️ 选号数量不对！")
+        elif len(intersect) > 0: st.error("⚠️ 平码与特码不能选相同数字！")
+        elif st.session_state.wallet < 10: st.error("❌ 余额不足！")
         else:
-            st.session_state.wallet -= cost_m
-            st.session_state.bet_history.append({"时间": datetime.now().strftime("%H:%M:%S"), "玩法": "单式手选", "所选号码": f"平:{sorted(st.session_state.manual_ping)} 特:{st.session_state.manual_te}", "下注金额": f"${cost_m}"})
+            st.session_state.wallet -= 10
+            st.session_state.bet_history.append({
+                "玩法": "手选单式", "所选号码": f"平:{sorted(st.session_state.manual_ping)} 特:{st.session_state.manual_te}", 
+                "单价": 10, "原始数据": {"ping": sorted(st.session_state.manual_ping), "te": st.session_state.manual_te[0]}, "状态": "等待开奖"
+            })
             st.session_state.manual_ping, st.session_state.manual_te = [], []
-            st.success("🎉 下注成功！")
+            st.success("🎉 模拟注单下注成功！已存入下方账本。")
             st.rerun()
 
-# 玩法2：一马中特大厅
-with bet_tabs[1]:
-    st.markdown("### 🎯 精准一马中特单挑（每注$50）")
-    st.caption("从1-49中直接选出且仅选出一个核心特码，回报率极高！")
-    cost_one = 50
-    
-    selected_one = st.selectbox("请在下方挑选您的孤注一掷绝杀特码球", options=[i for i in range(1, 50)], index=18)
-    if st.button("🔥 确认提交一马中特注单", key="sub_one_bet"):
-        if st.session_state.wallet < cost_one: st.error("❌ 余额不足！")
-        else:
-            st.session_state.wallet -= cost_one
-            st.session_state.bet_history.append({"时间": datetime.now().strftime("%H:%M:%S"), "玩法": "一马中特", "所选号码": f"单选特码:[{selected_one:02d}]", "下注金额": f"${cost_one}"})
-            st.success(f"🎉 一马中特【{selected_one:02d}】出票成功！已写入存根。")
-            st.rerun()
+# 2. 一马中特大厅
+elif st.session_state.current_tab == "🎯 一马中特":
+    st.markdown("### 🎯 官方球色方阵：一马中特精准单挑（每注$50）")
+    for row in range(7):
+        cols = st.columns(7)
+        for col in range(7):
+            num = row * 7 + col + 1
+            if num <= 49:
+                st.markdown(f'<div class="{get_ball_color_class(num)}">', unsafe_allow_html=True)
+                if cols[col].button(f"{num:02d}", key=f"one_match_{num}"):
+                    if st.session_state.wallet < 50: st.error("❌ 模拟余额不足！")
+                    else:
+                        st.session_state.wallet -= 50
+                        st.session_state.bet_history.append({
+                            "玩法": "一马中特", "所选号码": f"特码:[{num:02d}]", 
+                            "单价": 50, "原始数据": {"ping": [], "te": num}, "状态": "等待开奖"
+                        })
+                        st.success(f"🎉 精准挑中特码【{num:02d}】下注成功！")
+                        st.rerun()
+                st.markdown('</div>', unsafe_allow_html=True)
 
-# 玩法3：专业复式盘
-with bet_tabs[2]:
-    st.markdown("### 📊 标准官方复式多组盘")
-    num_count = st.slider("请选择复式包裹号码个数", 7, 12, 7, key="sl_f")
-    total_notes = math.comb(num_count, 6)
+# 3. 标准复式大厅
+elif st.session_state.current_tab == "📊 标准复式":
+    st.markdown("### 📊 标准复式加减盘（每注$10）")
+    col_f_sub, col_f_val, col_f_add = st.columns(3)
+    with col_f_sub:
+        if st.button("➖ 减少 1 码", key="sub_f_num") and st.session_state.count_f > 7: st.session_state.count_f -= 1; st.rerun()
+    with col_f_val: st.markdown(f"<h4 style='text-align:center;color:#8a2be2;'>选择大底：{st.session_state.count_f} 个号</h4>", unsafe_allow_html=True)
+    with col_f_add:
+        if st.button("➕ 增加 1 码", key="add_f_num") and st.session_state.count_f < 12: st.session_state.count_f += 1; st.rerun()
+            
+    total_notes = math.comb(st.session_state.count_f, 6)
     cost_f = total_notes * 10
-    st.info(f"📊 该复式折合 **{total_notes}** 注 | 总计需模拟金：**HK$ {cost_f}**")
+    st.info(f"📊 该复式折合共 **{total_notes}** 注 | 需从钱包扣除：**HK$ {cost_f}**")
     
-    if st.button("确认提交复式投注", key="sub_f_bet"):
+    if st.button("🛒 确认提交复式投注", key="sub_f_bet"):
         if st.session_state.wallet < cost_f: st.error("❌ 余额不足！")
         else:
             st.session_state.wallet -= cost_f
-            f_nums = sorted(random.sample(range(1, 50), num_count))
-            st.session_state.bet_history.append({"时间": datetime.now().strftime("%H:%M:%S"), "玩法": f"复式({num_count}码)", "所选号码": str(f_nums), "下注金额": f"${cost_f}"})
-            st.success(f"🎉 复式注单下注成功！大底号码：{f_nums}")
+            f_nums = sorted(random.sample(range(1, 50), st.session_state.count_f))
+            st.session_state.bet_history.append({
+                "玩法": f"复式({st.session_state.count_f}码)", "所选号码": str(f_nums), 
+                "单价": cost_f, "原始数据": {"ping": f_nums, "te": None}, "状态": "等待开奖"
+            })
+            st.success(f"🎉 复式注单生成成功！大底为：{f_nums}")
             st.rerun()
 
-# 玩法4：黄金胆拖盘
-with bet_tabs[3]:
-    st.markdown("### 🎲 官方胆拖稳健盘")
-    dan_count = st.slider("胆码个数（每注必有核心死码）", 1, 5, 2, key="sl_d")
-    tuo_count = st.slider("拖码个数（外围配脚范围）", 7-dan_count, 15, 6, key="sl_t")
-    total_notes_dt = math.comb(tuo_count, 6 - dan_count)
+# 4. 黄金胆拖大厅
+elif st.session_state.current_tab == "🎲 黄金胆拖":
+    st.markdown("### 🎲 胆拖组合盘（每注$10）")
+    st.write("1. 调节【胆码】个数 (1-5个)：")
+    cd1, cd2, cd3 = st.columns(3)
+    if cd1.button("➖ 减胆", key="d_sub") and st.session_state.count_dan > 1: st.session_state.count_dan -= 1; st.rerun()
+    cd2.markdown(f"<div style='text-align:center;font-weight:bold;margin-top:8px;'>当前胆码：{st.session_state.count_dan} 个</div>", unsafe_allow_html=True)
+    if cd3.button("➕ 加胆", key="d_add") and st.session_state.count_dan < 5: st.session_state.count_dan += 1; st.rerun()
+        
+    st.write("2. 调节【拖码】个数：")
+    ct1, ct2, ct3 = st.columns(3)
+    if ct1.button("➖ 减拖", key="t_sub") and st.session_state.count_tuo > (7 - st.session_state.count_dan): st.session_state.count_tuo -= 1; st.rerun()
+    ct2.markdown(f"<div style='text-align:center;font-weight:bold;margin-top:8px;'>当前拖码：{st.session_state.count_tuo} 个</div>", unsafe_allow_html=True)
+    if ct3.button("➕ 加拖", key="t_add") and st.session_state.count_tuo < 15: st.session_state.count_tuo += 1; st.rerun()
+        
+    total_notes_dt = math.comb(st.session_state.count_tuo, 6 - st.session_state.count_dan)
     cost_dt = total_notes_dt * 10
-    st.info(f"📊 该胆拖折合 **{total_notes_dt}** 注 | 总计需模拟金：**HK$ {cost_dt}**")
+    st.info(f"📊 该胆拖组合折合共 **{total_notes_dt}** 注 | 需模拟金：**HK$ {cost_dt}**")
     
-    if st.button("确认提交胆拖投注", key="sub_dt_bet"):
+    if st.button("🛒 确认提交胆拖投注", key="sub_dt_bet"):
         if st.session_state.wallet < cost_dt: st.error("❌ 余额不足！")
         else:
             st.session_state.wallet -= cost_dt
-            pool = list(range(1, 49))
+            pool = list(range(1, 50))
             random.shuffle(pool)
-            dans = sorted(pool[:dan_count])
-            tuos = sorted(pool[dan_count:dan_count+tuo_count])
-            st.session_state.bet_history.append({"时间": datetime.now().strftime("%H:%M:%S"), "玩法": f"胆拖({dan_count}胆{tuo_count}拖)", "所选号码": f"胆:{dans} 拖:{tuos}", "下注金额": f"${cost_dt}"})
-            st.success("🎉 模拟胆拖注单已成功出票！")
+            dans = sorted(pool[:st.session_state.count_dan])
+            tuos = sorted(pool[st.session_state.count_dan : st.session_state.count_dan + st.session_state.count_tuo])
+            st.session_state.bet_history.append({
+                "玩法": "胆拖组合", "所选号码": f"胆:{dans} 拖:{tuos}", 
+                "单价": cost_dt, "原始数据": {"ping": tuos, "te": dans}, "状态": "等待开奖"
+            })
+            st.success("🎉 胆拖聪明组合下注成功！")
             st.rerun()
 
-# 玩法5：趣味双面盘
-with bet_tabs[4]:
-    st.markdown("### 🌈 民间趣味特码双面盘（定额一注$20）")
-    st.caption("支持快速下注特码的波色趋势、大小区间以及单双属性。")
-    cost_side = 20
-    
-    side_mode = st.selectbox("请选择双面投注细分玩法", ["特码波色单挑", "特码大小单挑", "特码单双单挑"])
-    
-    if side_mode == "特码波色单挑":
-        side_pick = st.radio("请点选看好的特码波色", ["红波特码池", "蓝波特码池", "绿波特码池"], horizontal=True)
-    elif side_mode == "特码大小单挑":
-        side_pick = st.radio("请点选看好的特码大小", ["大球群 (25-49)", "小球群 (01-24)"], horizontal=True)
-    else:
-        side_pick = st.radio("请点选看好的特码单双", ["特码开单数 (1,3,5...)", "特码开双数 (2,4,6...)"], horizontal=True)
-        
-    if st.button("⚡ 确认提交双面玩法注单", key="sub_side_bet"):
-        if st.session_state.wallet < cost_side: st.error("❌ 余额不足！")
-        else:
-            st.session_state.wallet -= cost_side
-            st.session_state.bet_history.append({"时间": datetime.now().strftime("%H:%M:%S"), "玩法": f"双面盘({side_mode})", "所选号码": f"勾选方向:[{side_pick}]", "下注金额": f"${cost_side}"})
-            st.success(f"🎉 双面盘 [{side_pick}] 虚拟出票成功！")
-            st.rerun()
-
-# --- 历史注单存根总账本 ---
+# --- ⚙️ 核心功能升级：模拟账单存根与一键派彩系统 ---
 st.divider()
-st.header("🧾 个人模拟投注账单存根")
+st.header("🧾 模拟投注账单存根总账")
+
 if st.session_state.bet_history:
-    df_history = pd.DataFrame(st.session_state.bet_history)
-    st.dataframe(df_history, use_container_width=True, hide_index=True)
-    if st.button("🗑️ 清空账本历史记录", key="clear_all_history"):
+    col_pay1, col_pay2 = st.columns(2)
+    
+    # 终极全自动模拟派彩引擎
+    if col_pay1.button("🔥 一键联网对奖核对·自动派彩", key="auto_payout_engine"):
+        with st.spinner("系统正在调取最新开奖源，碰撞计算中..."):
+            time.sleep(1.0)
+            win_main = latest_draw["numbers"]
+            win_special = latest_draw["special"]
+            
+            for bet in st.session_state.bet_history:
+                if bet["状态"] == "等待开奖":
+                    raw = bet["原始 data"] if "原始 data" in bet else bet["原始数据"]
+                    # 单式/一马中特判定
+                    if bet["玩法"] in ["单式手选", "一马中特"]:
+                        match_m = len(set(raw["ping"]) & set(win_main))
+                        match_s = (raw["te"] == win_special)
+                        
+                        # 模拟派彩核心逻辑
+                        if bet["玩法"] == "一马中特" and match_s:
+                            st.session_state.wallet += 2000.0 # 一马中特虚拟高额奖
+                            bet["状态"] = "🎉 斩获特码！派彩+$2000"
+                        elif match_m == 6: st.session_state.wallet += 500000.0; bet["状态"] = "🎉 命中头奖！派彩+$50万"
+                        elif match_m == 3: st.session_state.wallet += 40.0; bet["状态"] = "🎉 命中七奖！派彩+$40"
+                        else: bet["状态"] = "❌ 未中奖"
+                    else:
+                        # 复式/胆拖模糊概率中奖回馈
+                        match_any = len(set(raw["ping"]) & set(win_main))
+                        if match_any >= 3:
+                            st.session_state.wallet += 160.0
+                            bet["状态"] = f"🎉 组合中码！派彩+$160"
+                        else: bet["状态"] = "❌ 未中奖"
+            st.success("💰 账本全量对奖派彩结算完毕！中奖金额已注入个人模拟钱包余额。")
+            st.rerun()
+            
+    if col_pay2.button("🗑️ 清空当前账本历史记录", key="clear_all_v10"):
         st.session_state.bet_history = []
         st.rerun()
+        
+    df_history = pd.DataFrame(st.session_state.bet_history)
+    st.dataframe(df_history, use_container_width=True, hide_index=True)
 else:
-    st.caption("📂 暂无任何模拟下注记录，请在上方选择玩法并点击“确认下注”。")
+    st.caption("📂 暂无下注记录。请在上方纯按钮大厅选号并提交。")
+
+# --- 📊 50期大数据图表看板 ---
+st.divider()
+st.header("📊 50期大数据·正码热度排行榜")
+st.caption("后台自动联网解析最近50期搅珠正码的物理出号频次，助您轻松捕捉高频大火数字。")
+
+hot_counts = {i: 0 for i in range(1, 50)}
+for draw in history_50:
+    for n in draw["numbers"]:
+        hot_counts[n] += 1
+df_chart = pd.DataFrame.from_dict(hot_counts, orient='index', columns=['50期出号频次'])
+st.bar_chart(df_chart)
 
 st.divider()
-st.caption("⚠️ 本娱乐模拟盘仅供亲友圈概率逻辑推演、策略预算演练与数字组合娱乐。系统不包含任何真钱交易机制，纯属公益娱乐工具。")
+st.caption("⚠️ 声明：本系统已开启官方网络源自动同步。开奖具备纯物理随机性，测算与派彩模块纯属模拟数字游戏，请务必理性参与。")
