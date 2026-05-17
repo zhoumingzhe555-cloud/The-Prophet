@@ -9,13 +9,13 @@ from datetime import datetime
 # --- 页面配置 ---
 st.set_page_config(page_title="预言家大满贯盘", page_icon="🔮", layout="centered")
 
-# --- 🎯 极致手机端像素级压缩样式表 (一屏看全 49 码的秘诀) ---
+# --- 🎯 极致像素级横向重排与超紧凑间距样式表 ---
 st.markdown("""
     <style>
-    /* 彻底清除整个手机屏幕的无用外白边 */
-    .block-container { padding-top: 0.4rem; padding-bottom: 0.4rem; padding-left: 0.3rem; padding-right: 0.3rem; }
+    /* 清除手机屏幕上下左右所有废白边 */
+    .block-container { padding-top: 0.4rem; padding-bottom: 0.4rem; padding-left: 0.2rem; padding-right: 0.2rem; }
     
-    /* 核心行动大按钮（充值、下注、派彩） */
+    /* 核心行动大按钮 */
     .stButton>button { 
         background: linear-gradient(135deg, #4b0082, #8a2be2) !important; 
         color: white !important; border-radius: 25px !important; width: 100% !important; height: 44px !important; 
@@ -34,35 +34,34 @@ st.markdown("""
         background: linear-gradient(135deg, #ffd700, #ff8c00) !important; color: #1a1a1a !important; border: 1px solid #ffffff !important; font-weight: 900 !important;
     }
     
-    /* 🔥【终极特化修复】下方 1-49 号码盘全方位像素级深度压榨，彻底清除垂直空白 */
+    /* 🔥【极致无缝压缩】下方1-49号码盘垂直与水平间距极限压榨 */
     .num-matrix-container {
         margin-top: -5px !important;
     }
-    /* 1. 强行命令包裹数字球的所有中间层组件高度归零，彻底砍断垂直拉伸 */
     .num-matrix-container div[data-testid="stVerticalBlock"] {
         gap: 0px !important;
         padding: 0px !important;
         margin: 0px !important;
     }
-    /* 2. 强控横向 7 列横排，同时将上下行距死死卡扣在一起 */
+    /* 强控横向 7 列横排，同时将上下行距完美卡扣在一起 */
     .num-matrix-container div[data-testid="stHorizontalBlock"] {
         display: flex !important;
         flex-direction: row !important; 
         flex-wrap: nowrap !important;   
-        gap: 3px !important;            /* 左右球间距 */
+        gap: 1px !important;            /* 🔥【左右极致缩小】球与球左右间距降到 1 像素 */
         margin-top: 0px !important;
-        margin-bottom: 3px !important;  /* 🔥【关键参数】7行之间只有极小紧凑的 3 像素上下间歇！ */
+        margin-bottom: 1px !important;  /* 🔥【上下极致缩小】行与行上下间距降到 1 像素 */
         padding: 0px !important;
-        height: auto !important;        /* 解除任何隐式高度撑开 */
+        height: auto !important;        
     }
     .num-matrix-container div[data-testid="stHorizontalBlock"] > div {
         flex: 1 1 0% !important; min-width: 0 !important; padding: 0 !important; margin: 0 !important;
     }
-    /* 3. 精准锁定每一个按钮为完美的自适应正圆球体 */
+    /* 精准锁定每一个按钮为完美的自适应正圆球体 */
     .num-matrix-container div[data-testid="stHorizontalBlock"] button {
-        color: white !important; font-weight: bold !important; font-size: 15px !important; border: none !important; 
+        color: white !important; font-weight: bold !important; font-size: 14px !important; border: none !important; 
         border-radius: 50% !important; width: 100% !important; aspect-ratio: 1 / 1 !important; padding: 0px !important; margin: 0px auto !important;
-        box-shadow: 1px 1px 3px rgba(0,0,0,0.15) !important;
+        box-shadow: 1px 1px 2px rgba(0,0,0,0.15) !important;
         display: flex !important; align-items: center !important; justify-content: center !important;
     }
     
@@ -70,9 +69,9 @@ st.markdown("""
     .num-matrix-container .btn-red button { background: linear-gradient(135deg, #ff4d4d, #cc0000) !important; }
     .num-matrix-container .btn-blue button { background: linear-gradient(135deg, #4da6ff, #0066cc) !important; }
     .num-matrix-container .btn-green button { background: linear-gradient(135deg, #47d147, #009900) !important; }
-    /* 勾选状态 */
+    /* 勾选高亮状态 */
     .num-matrix-container .btn-selected button { 
-        background: linear-gradient(135deg, #ffd700, #ff8c00) !important; color: #1a1a1a !important; font-weight: 900 !important; border: 2px solid #ffffff !important; box-shadow: 0px 0px 5px #ffd700 !important; 
+        background: linear-gradient(135deg, #ffd700, #ff8c00) !important; color: #1a1a1a !important; font-weight: 900 !important; border: 1.5px solid #ffffff !important; box-shadow: 0px 0px 4px #ffd700 !important; 
     }
     
     .ball-container { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; margin-bottom: 4px; }
@@ -87,9 +86,9 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # --- 官方49码球色划分 ---
-RED_BALLS = [1,2,7,8,12,13,18,19,23,24,29,30,34,35,40,45,46]
-BLUE_BALLS = [3,4,9,10,14,15,20,25,26,31,36,37,41,42,47,48]
-GREEN_BALLS = [5,6,11,16,17,21,22,27,28,32,33,38,39,43,44,49]
+RED_BALLS = [1, 2, 7, 8, 12, 13, 18, 19, 23, 24, 29, 30, 34, 35, 40, 45, 46]
+BLUE_BALLS = [3, 4, 9, 10, 14, 15, 20, 25, 26, 31, 36, 37, 41, 42, 47, 48]
+GREEN_BALLS = [5, 6, 11, 16, 17, 21, 22, 27, 28, 32, 33, 38, 39, 43, 44, 49]
 
 def get_ball_style(num):
     if num in RED_BALLS: return "ball-red"
@@ -131,7 +130,7 @@ def fetch_live_data_50():
             if live_data: return live_data
     except Exception:
         pass
-    return [{"issue": "26/051", "date": "2026-05-14", "numbers": [2,7,15,24,31,42], "special": 49}]
+    return [{"issue": "26/051", "date": "2026-05-14", "numbers": [2, 7, 15, 24, 31, 42], "special": 49}]
 
 history_50 = fetch_live_data_50()
 latest_draw = history_50[0]
@@ -185,10 +184,11 @@ if st.session_state.current_tab == "🔘 自选平特":
     st.info(f"🛒 篮子状态：平码【{len(st.session_state.manual_ping)}/5】 | 特码【{len(st.session_state.manual_te)}/1】")
 
     with st.expander("🟠 点击收放 ——【5个平码正圆键盘】", expanded=True):
+        # 🔥【大升级：横向网格循环排序】让1-7在第一行，8-14在第二行横向排开
         for row in range(7):
             cols = st.columns(7)
             for col in range(7):
-                num = row * 7 + col + 1
+                num = row * 7 + col + 1  # 核心改变：修改索引计算公式，实现纯横向序列
                 if num <= 49:
                     is_sel = num in st.session_state.manual_ping
                     cls = "btn-selected" if is_sel else get_ball_color_class(num)
@@ -201,10 +201,11 @@ if st.session_state.current_tab == "🔘 自选平特":
                     st.markdown('</div>', unsafe_allow_html=True)
 
     with st.expander("🔵 点击收放 ——【1个特码正圆键盘】", expanded=True):
+        # 🔥【大升级：横向网格循环排序】特码键盘同步修改为横向序列
         for row in range(7):
             cols = st.columns(7)
             for col in range(7):
-                num = row * 7 + col + 1
+                num = row * 7 + col + 1  # 纯横向顺序
                 if num <= 49:
                     is_sel = num in st.session_state.manual_te
                     cls = "btn-selected" if is_sel else get_ball_color_class(num)
@@ -238,10 +239,11 @@ if st.session_state.current_tab == "🔘 自选平特":
 # 2. 一马中特大厅
 elif st.session_state.current_tab == "🎯 一马中特":
     st.markdown("### 🎯 全彩正圆键盘：一马中特单挑（每注$50）")
+    # 🔥【大升级：横向网格循环排序】一马中特键盘同步修改为横向序列
     for row in range(7):
         cols = st.columns(7)
         for col in range(7):
-            num = row * 7 + col + 1
+            num = row * 7 + col + 1  # 纯横向顺序
             if num <= 49:
                 st.markdown(f'<div class="{get_ball_color_class(num)}">', unsafe_allow_html=True)
                 if cols[col].button(f"{num}", key=f"one_match_{num}"):
@@ -338,9 +340,11 @@ if st.session_state.bet_history:
                         match_m = len(set(raw["ping"]) & set(win_main))
                         match_s = (raw["te"] == win_special)
                         
-                        if match_m == 6: st.session_state.wallet += 50000.0; bet["状态"] = "🎉 头奖！+$50000"
+                        if bet["玩法"] == "one_match" and match_s:
+                            st.session_state.wallet += 2000.0
+                            bet["状态"] = "🎉 斩获特码！+$2000"
+                        elif match_m == 6: st.session_state.wallet += 50000.0; bet["状态"] = "🎉 头奖！+$50000"
                         elif match_m == 3: st.session_state.wallet += 40.0; bet["状态"] = "🎉 七奖！+$40"
-                        elif match_s and bet["玩法"] == "手选单式": st.session_state.wallet += 20.0; bet["状态"] = "🎉 中特码！+$20"
                         else: bet["状态"] = "❌ 未中奖"
                     else:
                         match_any = len(set(raw["ping"]) & set(win_main))
@@ -358,16 +362,18 @@ if st.session_state.bet_history:
     df_history = pd.DataFrame(st.session_state.bet_history)
     st.dataframe(df_history, use_container_width=True, hide_index=True)
 else:
-    st.caption("📂 暂无下注记录。")
+    st.caption("📂 暂无下注记录。请在上方纯按钮大厅选号并提交。")
 
 # --- 📊 50期大数据图表看板 ---
 st.divider()
 st.header("📊 50期大数据·正码热度排行榜")
+
 hot_counts = {i: 0 for i in range(1, 50)}
 for draw in history_50:
-    for n in draw["numbers"]: hot_counts[n] += 1
+    for n in draw["numbers"]:
+        hot_counts[n] += 1
 df_chart = pd.DataFrame.from_dict(hot_counts, orient='index', columns=['50期出号频次'])
 st.bar_chart(df_chart)
 
 st.divider()
-st.caption("⚠️ 声明：本系统已开启官方网络源自动同步。模拟游戏纯属公益娱乐工具。")
+st.caption("⚠️ 声明：本系统已开启官方网络源自动同步。开奖具备纯物理随机性，测算与派彩模块纯属模拟数字游戏，请务必理性参与。")
