@@ -5,13 +5,27 @@ import pandas as pd
 import requests
 
 # --- 页面配置 ---
-st.set_page_config(page_title="预言家娱乐模拟盘", page_icon="🔮", layout="centered")
+st.set_page_config(page_title="预言家大满贯盘", page_icon="🔮", layout="centered")
 
-# --- 🎯 v15.5 终极像素级紧凑正圆巧克力矩阵样式表 ---
+# --- 🎯 v16.0 顶级像素级紧凑正圆巧克力矩阵样式表 ---
 st.markdown("""
     <style>
     /* 极致挤压手机端四周无用边距 */
     .block-container { padding-top: 0.2rem !important; padding-bottom: 0.2rem !important; padding-left: 0.2rem !important; padding-right: 0.2rem !important; }
+    
+    /* 预言家顶层核心防伪标志样式 */
+    .prophet-logo-title {
+        text-align: center !important;
+        font-size: 20px !important;
+        font-weight: 900 !important;
+        background: linear-gradient(135deg, #ffd700, #8a2be2, #00f2fe) !important;
+        -webkit-background-clip: text !important;
+        -webkit-text-fill-color: transparent !important;
+        margin-top: 2px !important;
+        margin-bottom: 4px !important;
+        letter-spacing: 2px !important;
+        text-shadow: 1px 1px 3px rgba(0,0,0,0.1) !important;
+    }
     
     /* 核心行动大按钮 */
     div[data-testid="stVerticalBlock"] .stButton>button { 
@@ -26,9 +40,9 @@ st.markdown("""
         display: flex !important;
         flex-direction: row !important;
         flex-wrap: nowrap !important;
-        gap: 2px !important;            /* 水平左右压缩 */
+        gap: 2px !important;            
         margin-top: 0px !important;
-        margin-bottom: 1px !important;  /* 🔥【行距极致压榨】纵向行间距降到1像素，彻底消除大空白 */
+        margin-bottom: 1px !important;  
         padding: 0px !important;
         width: 100% !important;
     }
@@ -72,15 +86,15 @@ st.markdown("""
     .draw-blue { background: linear-gradient(135deg, #4da6ff, #0066cc); }
     .draw-green { background: linear-gradient(135deg, #47d147, #009900); }
     
-    .wallet-card-mini { background: linear-gradient(135deg, #111, #222); color: #ffd700; padding: 6px; border-radius: 6px; text-align: center; font-weight: bold; font-size: 12px; border: 1px solid #333; }
+    .wallet-card-mini { background: linear-gradient(135deg, #111, #222); color: #ffd700; padding: 6px; border-radius: 8px; text-align: center; font-weight: bold; font-size: 12px; border: 1px solid #333; }
     .rank-badge { background: #8a2be2; color: white; padding: 1px 4px; border-radius: 5px; font-size: 10px; margin-left: 2px; }
     </style>
     """, unsafe_allow_html=True)
 
 # --- 官方49码球色严格定义 ---
-RED_BALLS = [1,2,7,8,12,13,18,19,23,24,29,30,34,35,40,45,46]
-BLUE_BALLS = [3,4,9,10,14,15,20,25,26,31,36,37,41,42,47,48]
-GREEN_BALLS = [5,6,11,16,17,21,22,27,28,32,33,38,39,43,44,49]
+RED_BALLS = [1, 2, 7, 8, 12, 13, 18, 19, 23, 24, 29, 30, 34, 35, 40, 45, 46]
+BLUE_BALLS = [3, 4, 9, 10, 14, 15, 20, 25, 26, 31, 36, 37, 41, 42, 47, 48]
+GREEN_BALLS = [5, 6, 11, 16, 17, 21, 22, 27, 28, 32, 33, 38, 39, 43, 44, 49]
 
 def get_ball_style(num):
     if num in RED_BALLS: return "draw-red"
@@ -118,7 +132,7 @@ def fetch_live_data_50():
                     "issue": item.get("issue"),
                     "date": item.get("open_time")[:10],
                     "numbers": [int(x) for x in item.get("numbers")[:6]],
-                    "special": int(item.get("numbers")[6])
+                    "special": int(item.get("numbers"))
                 })
             if live_data: return live_data
     except Exception:
@@ -126,23 +140,26 @@ def fetch_live_data_50():
     return [{"issue": "26/051", "date": "2026-05-14", "numbers": [1, 14, 19, 23, 27, 34], "special": 49}]
 
 history_50 = fetch_live_data_50()
-latest_draw = history_50[0]
+latest_draw = history_50
 
-# ----------------- 📡【第一步：开奖号码绝对置顶】 -----------------
+# ----------------- 🔮【绝对置顶一：全新加入预言家尊贵核心标志】 -----------------
+st.markdown('<div class="prophet-logo-title">🔮 预言家 (The Prophet) 模拟大厅</div>', unsafe_allow_html=True)
+
+# ----------------- 🎰【绝对置顶二：官方实时中奖彩球】 -----------------
 ball_html = '<div class="draw-container">'
 for num in latest_draw['numbers']:
     ball_html += f'<div class="draw-ball {get_ball_style(num)}">{num}</div>'
 ball_html += f'<div class="draw-ball {get_ball_style(latest_draw["special"])}">{latest_draw["special"]}</div></div>'
 st.markdown(ball_html, unsafe_allow_html=True)
 
-# ----------------- 📅【第二步：修复：开奖期数、日期及预报完美移到号码球下方】 -----------------
+# ----------------- 📅【绝对置顶三：开奖期数与公告对齐】 -----------------
 col_info1, col_info2 = st.columns(2)
 with col_info1:
     st.markdown(f"<div style='font-size:12px;color:#333;font-weight:bold;margin-top:2px;'>📡 第 {latest_draw['issue']} 期开奖 ({latest_draw['date']})</div>", unsafe_allow_html=True)
 with col_info2:
     st.markdown("<div style='font-size:12px;color:#8a2be2;font-weight:bold;text-align:right;'>📢 下期截止：05-19 21:15</div>", unsafe_allow_html=True)
 
-# ----------------- 🪙【第三步：资产钱包与充值小挂件】 -----------------
+# ----------------- 🪙【第四步：资产钱包与充值小挂件】 -----------------
 def get_player_rank(balance):
     if balance >= 50000: return "🏆神算"
     if balance >= 20000: return "💎金手"
@@ -158,7 +175,7 @@ with col_w2:
         st.session_state.wallet += 5000.0
         st.rerun()
 
-# ----------------- 🛠️【第四步：纯原生药丸长条玩法大厅】 -----------------
+# ----------------- 🛠️【第五步：纯原生药丸长条玩法大厅】 -----------------
 nav_cols = st.columns(4)
 tabs_list = ["自选平特", "一马中特", "标准复式", "黄金胆拖"]
 
@@ -172,7 +189,7 @@ for idx, tab_name in enumerate(tabs_list):
 
 st.divider()
 
-# ----------------- 🎰【第五步：核心玩法区（巧克力矩阵压缩版）】 -----------------
+# ----------------- 🎰【第六步：核心玩法区域分流】 -----------------
 
 if st.session_state.current_tab == "自选平特":
     st.markdown("### 🟢 平特自选（5平码 + 1特码）")
@@ -316,7 +333,7 @@ if st.session_state.bet_history:
             win_sum = 0
             for bet in st.session_state.bet_history:
                 if bet["状态"] == "等待开奖":
-                    raw = bet["原始数据"]
+                    raw = bet["原始 data"] if "原始 data" in bet else bet["原始数据"]
                     if bet["玩法"] in ["手选单式", "一马中特"]:
                         match_m = len(set(raw["ping"]) & set(win_main))
                         match_s = (raw["te"] == win_special)
@@ -354,3 +371,4 @@ with st.expander(f"📅 点击展开/查阅全网最新 50 期开奖真实历史
             正码: {', '.join(f'{n:02d}' for n in draw['numbers'])} | <span style="color:#dc143c; font-weight:bold;">特别号: {draw['special']:02d}</span>
         </div>
         """, unsafe_allow_html=True)
+
