@@ -9,7 +9,7 @@ from datetime import datetime
 # --- 页面配置 ---
 st.set_page_config(page_title="预言家大满贯盘", page_icon="🔮", layout="centered")
 
-# --- 🎯 v12.0 首屏开奖置顶与极致无缝全高亮球座 UI 样式表 ---
+# --- 🎯 v12.0 终极首屏开奖置顶与极致无缝全高亮球座 UI 样式表 ---
 st.markdown("""
     <style>
     .block-container { padding-top: 0.4rem; padding-bottom: 0.4rem; padding-left: 0.2rem; padding-right: 0.2rem; }
@@ -35,7 +35,7 @@ st.markdown("""
     /* 原生 HTML 1-49 巧克力无缝矩阵 */
     .html-grid-matrix { display: flex !important; flex-direction: row !important; flex-wrap: wrap !important; justify-content: flex-start !important; gap: 2px !important; row-gap: 4px !important; width: 100% !important; max-width: 350px !important; margin: 0 auto !important; padding: 2px 0 !important; }
     
-    /* 大升级：精调带次数的双层正圆球座 */
+    /* 精调带次数的双层正圆球座 */
     .html-ball-btn {
         flex: 0 0 calc((100% - 12px) / 7) !important; aspect-ratio: 1 / 1 !important; color: white !important; font-weight: bold !important; border: none !important; border-radius: 50% !important;
         display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; box-shadow: 1px 1px 2px rgba(0,0,0,0.15) !important; cursor: pointer !important; -webkit-tap-highlight-color: transparent !important;
@@ -49,7 +49,7 @@ st.markdown("""
     .hb-blue { background: linear-gradient(135deg, #4da6ff, #0066cc) !important; }
     .hb-green { background: linear-gradient(135deg, #47d147, #009900) !important; }
     
-    /* 🔥【升级亮点】已选勾选后的金黄球状态，文字加粗变色加白边 */
+    /* 已选勾选后的金黄球状态 */
     .hb-selected { 
         background: linear-gradient(135deg, #ffd700, #ff8c00) !important; 
         color: #1a1a1a !important; 
@@ -117,48 +117,53 @@ def fetch_live_data_50():
             if live_data: return live_data
     except Exception:
         pass
-    return [{"issue": "26/051", "date": "2026-05-14", "numbers": [12, 18, 23, 29, 31, 44], "special": 49}]
+    return [{"issue": "26/051", "date": "2026-05-14", "numbers": [2, 7, 15, 23, 28, 34], "special": 49}]
 
 history_50 = fetch_live_data_50()
-latest_draw = history_50
+latest_draw = history_50[0]
 
-# 🔥 后台精确统计出 1-49 每个号码在近 50 期中出现的真实总频次
+# 后台精准统计出 1-49 每个号码在近 50 期中出现的真实总频次
 freq_map = {i: 0 for i in range(1, 50)}
 for draw in history_50:
     for n in draw["numbers"] + [draw["special"]]:
         if n in freq_map: freq_map[n] += 1
 
+# 🧠【核心安全重构】提前剥离字典数据为纯基础变量，彻底隔绝 HTML 字符串单双引号冲突
+draw_issue = str(latest_draw["issue"])
+draw_date = str(latest_draw["date"])
+draw_numbers = latest_draw["numbers"]
+draw_special = latest_draw["special"]
+
 # --- 📡 官方同步最新开奖看板置顶 ---
-st.markdown(f"<div style='font-size:14px;color:#555;font-weight:bold;margin-bottom:2px;text-align:center;'>📡 官方同步最新开奖：第 {latest_draw['issue']} 期 ({latest_draw['date']})</div>", unsafe_allow_html=True)
+st.markdown(f'<div style="font-size:14px;color:#555;font-weight:bold;margin-bottom:2px;text-align:center;">📡 官方同步最新开奖：第 {draw_issue} 期 ({draw_date})</div>', unsafe_allow_html=True)
 ball_html = '<div class="ball-container">'
-for num in latest_draw['numbers']:
+for num in draw_numbers:
     ball_html += f'<div class="ball {get_ball_style(num)}">{num}</div>'
-ball_html += f'<div class="ball {get_ball_style(latest_draw["special"])}">{latest_draw["special"]}</div></div>'
+ball_html += f'<div class="ball {get_ball_style(draw_special)}">{draw_special}</div></div>'
 st.markdown(ball_html, unsafe_allow_html=True)
 
 st.write("")
 
 # ----------------- 📡 高级接口事件捕获系统 -----------------
-click_event = st.query_params
-
-if "set_tab" in click_event:
-    st.session_state.current_tab = str(click_event.get("set_tab"))
+# 完美拦截 URL 参数，将 HTML 的点击动作秒级注入 Session 状态池里
+if "set_tab" in st.query_params:
+    st.session_state.current_tab = str(st.query_params.get("set_tab"))
     st.query_params.clear(); st.rerun()
 
-if "click_ping" in click_event:
-    clicked_num = int(click_event.get("click_ping"))
+if "click_ping" in st.query_params:
+    clicked_num = int(st.query_params.get("click_ping"))
     if clicked_num in st.session_state.manual_ping: st.session_state.manual_ping.remove(clicked_num)
     elif len(st.session_state.manual_ping) < 5: st.session_state.manual_ping.append(clicked_num)
     st.query_params.clear(); st.rerun()
 
-if "click_te" in click_event:
-    clicked_num = int(click_event.get("click_te"))
+if "click_te" in st.query_params:
+    clicked_num = int(st.query_params.get("click_te"))
     if clicked_num in st.session_state.manual_te: st.session_state.manual_te.remove(clicked_num)
     else: st.session_state.manual_te = [clicked_num]
     st.query_params.clear(); st.rerun()
 
-if "click_one" in click_event:
-    clicked_num = int(click_event["click_one"])
+if "click_one" in st.query_params:
+    clicked_num = int(st.query_params.get("click_one"))
     if st.session_state.wallet < 50: st.error("❌ 模拟余额不足！")
     else:
         st.session_state.wallet -= 50
@@ -177,9 +182,9 @@ current_rank = get_player_rank(st.session_state.wallet)
 
 col_w1, col_w2 = st.columns(2)
 with col_w1:
-    st.markdown(f'<div class="wallet-card-mini">🪙 余额: ${st.session_state.wallet:,.0f} <span class="rank-badge">{current_rank}</span></div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="wallet-card-mini">🪙 余额: \${st.session_state.wallet:,.0f} <span class="rank-badge">{current_rank}</span></div>', unsafe_allow_html=True)
 with col_w2:
-    if st.button("🧧 充值 $5000 体验金", key="top_up_v11"):
+    if st.button("🧧 充值 \$5000 体验金", key="top_up_v11"):
         st.session_state.wallet += 5000.0
         st.rerun()
 
@@ -206,7 +211,6 @@ if st.session_state.current_tab == "自选平特":
     for num in range(1, 50):
         is_sel = num in st.session_state.manual_ping
         cls = "hb-selected" if is_sel else get_html_ball_class(num)
-        # 🔥【升级亮点：数字后自动带出已选标识及开奖出现次数】
         display_num = f"{num} ✔" if is_sel else f"{num}"
         display_count = f"{freq_map[num]}次"
         
@@ -240,7 +244,6 @@ if st.session_state.current_tab == "自选平特":
         st.session_state.manual_ping, st.session_state.manual_te = [], []
         st.rerun()
         
-    # 🔥【选取完成后再确认下注机制】
     if col_o2.button("🛒 确认下注扣款", key="submit_m"):
         intersect = set(st.session_state.manual_ping) & set(st.session_state.manual_te)
         if len(st.session_state.manual_ping) != 5 or len(st.session_state.manual_te) != 1: 
@@ -257,7 +260,7 @@ if st.session_state.current_tab == "自选平特":
             st.rerun()
 
 elif st.session_state.current_tab == "一马中特":
-    st.markdown("### 🎯 巧克力正圆网格：一马中特单挑（每注$50）")
+    st.markdown("### 🎯 巧克力正圆网格：一马中特单挑（每注\$50）")
     html_one_matrix = '<div class="html-grid-matrix">'
     for num in range(1, 50):
         cls = get_html_ball_class(num)
@@ -270,7 +273,7 @@ elif st.session_state.current_tab == "一马中特":
     st.markdown(html_one_matrix + '</div>', unsafe_allow_html=True)
 
 elif st.session_state.current_tab == "标准复式":
-    st.markdown("### 📊 标准复式加减盘（每注$10）")
+    st.markdown("### 📊 标准复式加减盘（每注\$10）")
     col_f_sub, col_f_val, col_f_add = st.columns(3)
     with col_f_sub:
         if st.button("➖ 减少 1 码", key="sub_f_num") and st.session_state.count_f > 7: st.session_state.count_f -= 1; st.rerun()
@@ -279,7 +282,7 @@ elif st.session_state.current_tab == "标准复式":
         if st.button("➕ 增加 1 码", key="add_f_num") and st.session_state.count_f < 12: st.session_state.count_f += 1; st.rerun()
     total_notes = math.comb(st.session_state.count_f, 6)
     cost_f = total_notes * 10
-    st.info(f"📊 该复式折合共 **{total_notes}** 注 | 需从钱包扣除：**HK$ {cost_f}**")
+    st.info(f"📊 该复式折合共 **{total_notes}** 注 | 需从钱包扣除：**HK\$ {cost_f}**")
     if st.button("🛒 确认提交复式投注", key="sub_f_bet"):
         if st.session_state.wallet < cost_f: st.error("❌ 余额不足！")
         else:
@@ -289,7 +292,7 @@ elif st.session_state.current_tab == "标准复式":
             st.success("🎉 复式注单生成成功！"); st.rerun()
 
 elif st.session_state.current_tab == "黄金胆拖":
-    st.markdown("### 🎲 胆拖组合盘（每注$10）")
+    st.markdown("### 🎲 胆拖组合盘（每注\$10）")
     st.write("1. 调节【胆码】个数 (1-5个)：")
     cd1, cd2, cd3 = st.columns(3)
     if cd1.button("➖ 减胆", key="d_sub") and st.session_state.count_dan > 1: st.session_state.count_dan -= 1; st.rerun()
@@ -302,7 +305,7 @@ elif st.session_state.current_tab == "黄金胆拖":
     if ct3.button("➕ 加拖", key="t_add") and st.session_state.count_tuo < 15: st.session_state.count_tuo += 1; st.rerun()
     total_notes_dt = math.comb(st.session_state.count_tuo, 6 - st.session_state.count_dan)
     cost_dt = total_notes_dt * 10
-    st.info(f"📊 该胆拖组合折合共 **{total_notes_dt}** 注 | 需模拟金：**HK$ {cost_dt}**")
+    st.info(f"📊 该胆拖组合折合共 **{total_notes_dt}** 注 | 需模拟金：**HK\$ {cost_dt}**")
     if st.button("🛒 确认提交胆拖投注", key="sub_dt_bet"):
         if st.session_state.wallet < cost_dt: st.error("❌ 余额不足！")
         else:
@@ -325,8 +328,8 @@ if st.session_state.bet_history:
     if col_pay1.button("🔥 一键对奖·自动派彩", key="auto_payout_engine"):
         with st.spinner("碰撞计算中..."):
             time.sleep(0.5)
-            win_main = latest_draw["numbers"]
-            win_special = latest_draw["special"]
+            win_main = draw_numbers
+            win_special = draw_special
             win_sum = 0
             
             for bet in st.session_state.bet_history:
@@ -335,8 +338,8 @@ if st.session_state.bet_history:
                     if bet["玩法"] in ["手选单式", "一马中特"]:
                         match_m = len(set(raw["ping"]) & set(win_main))
                         match_s = (raw["te"] == win_special)
-                        if match_m == 6: st.session_state.wallet += 50000.0; win_sum += 50000; bet["状态"] = "🎉 头奖！+$50000"
-                        elif match_m == 3: st.session_state.wallet += 40.0; win_sum += 40; bet["状态"] = "🎉 七奖！+$40"
+                        if match_m == 6: st.session_state.wallet += 50000.0; win_sum += 50000; bet["状态"] = "🎉 头奖！+\$50000"
+                        elif match_m == 3: st.session_state.wallet += 40.0; win_sum += 40; bet["状态"] = "🎉 七奖！+\$40"
                         elif match_s: 
                             p_amt = 2000.0 if bet["玩法"] == "一马中特" else 20.0
                             st.session_state.wallet += p_amt; win_sum += p_amt
@@ -344,27 +347,7 @@ if st.session_state.bet_history:
                         else: bet["状态"] = "❌ 未中奖"
                     else:
                         match_any = len(set(raw["ping"]) & set(win_main))
-                        if match_any >= 3: st.session_state.wallet += 160.0; win_sum += 160; bet["状态"] = f"🎉 中码！+$160"
+                        if match_any >= 3: st.session_state.wallet += 160.0; win_sum += 160; bet["状态"] = f"🎉 中码！+\$160"
                         else: bet["状态"] = "❌ 未中奖"
             
-            st.session_state.last_win_msg = f"🔮【预言家喜报】斩获模拟体验金：HK$ {win_sum:,.0f}！💰 当前总资产：HK$ {st.session_state.wallet:,.0f}！"
-            st.rerun()
-            
-    if col_pay2.button("🗑️ 清空账本历史记录", key="clear_all_v11"):
-        st.session_state.bet_history = []
-        st.session_state.last_win_msg = ""
-        st.rerun()
-        
-    df_history = pd.DataFrame(st.session_state.bet_history)
-    st.dataframe(df_history, use_container_width=True, hide_index=True)
-    
-    if st.session_state.last_win_msg:
-        st.text_area("📋 【中奖喜报】", value=st.session_state.last_win_msg, height=90)
-else:
-    st.caption("📂 暂无下注记录。")
-
-# --- 大数据直方图 ---
-st.divider()
-st.header("📊 50期正码热度排行榜")
-df_chart = pd.DataFrame(pd.Series(freq_map), columns=['50期出号频次'])
-st.bar_chart(df_chart)
+            st.session_state.last_win_msg = f"🔮【预言家喜报】斩获模拟体验金：HK\$ {win_sum:,.0f}
