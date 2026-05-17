@@ -5,9 +5,9 @@ import pandas as pd
 import requests
 
 # --- 页面配置 ---
-st.set_page_config(page_title="预言家娱乐模拟盘", page_icon="🔮", layout="centered")
+st.set_page_config(page_title="预言家大满贯盘", page_icon="🔮", layout="centered")
 
-# --- 🎯 顶级像素级紧凑正圆巧克力矩阵样式表 ---
+# --- 🎯 v17.0 终极原生像素级紧凑正圆巧克力矩阵样式表 ---
 st.markdown("""
     <style>
     /* 极致挤压手机端四周无用边距 */
@@ -65,18 +65,18 @@ st.markdown("""
         display: flex !important; align-items: center !important; justify-content: center !important;
     }
     
-    /* 三色球高光 */
-    .ball-r button { background: linear-gradient(135deg, #ff4d4d, #cc0000) !important; }
-    .ball-b button { background: linear-gradient(135deg, #4da6ff, #0066cc) !important; }
-    .ball-g button { background: linear-gradient(135deg, #47d147, #009900) !important; }
+    /* 三色球高光底色 */
+    .ball-r button { background: linear-gradient(135deg, #ff4d4d, #cc0000) !important; color: white !important; }
+    .ball-b button { background: linear-gradient(135deg, #4da6ff, #0066cc) !important; color: white !important; }
+    .ball-g button { background: linear-gradient(135deg, #47d147, #009900) !important; color: white !important; }
     
-    /* 勾选高亮金黄立体球 */
+    /* 🔥【升级核心修复】勾选后蜕变为奢华金黄立体球，强行覆盖原有颜色 */
     .ball-s button {
         background: linear-gradient(135deg, #ffd700, #ff8c00) !important;
-        color: #1a1a1a !important;
+        color: #1a1a1a !important;   /* 字体变为深黑更易阅读 */
         font-weight: 900 !important;
-        border: 1.5px solid #ffffff !important;
-        box-shadow: 0px 0px 4px #ffd700 !important;
+        border: 2px solid #ffffff !important;
+        box-shadow: 0px 0px 6px #ffd700 !important;
     }
     
     /* 置顶巨型开奖号码盘样式 */
@@ -94,7 +94,7 @@ st.markdown("""
 # --- 官方49码球色严格定义 ---
 RED_BALLS = [1, 2, 7, 8, 12, 13, 18, 19, 23, 24, 29, 30, 34, 35, 40, 45, 46]
 BLUE_BALLS = [3, 4, 9, 10, 14, 15, 20, 25, 26, 31, 36, 37, 41, 42, 47, 48]
-GREEN_BALLS = [5, 6, 11, 12, 16, 17, 21, 22, 27, 28, 32, 33, 38, 39, 43, 44, 49]
+GREEN_BALLS = [5, 6, 11, 16, 17, 21, 22, 27, 28, 32, 33, 38, 39, 43, 44, 49]
 
 def get_ball_style(num):
     if num in RED_BALLS: return "draw-red"
@@ -142,7 +142,7 @@ def fetch_live_data_50():
 history_50 = fetch_live_data_50()
 latest_draw = history_50[0]
 
-# ----------------- 🔮【置顶一：全新加入预言家尊贵核心标志】 -----------------
+# ----------------- 🔮【置顶一：预言家大厅标志】 -----------------
 st.markdown('<div class="prophet-logo-title">🔮 预言家 (The Prophet) 模拟大厅</div>', unsafe_allow_html=True)
 
 # ----------------- 🎰【置顶二：官方实时中奖彩球】 -----------------
@@ -159,7 +159,7 @@ with col_info1:
 with col_info2:
     st.markdown("<div style='font-size:12px;color:#8a2be2;font-weight:bold;text-align:right;'>📢 下期截止：05-19 21:15</div>", unsafe_allow_html=True)
 
-# ----------------- 🪙【第四步：资产钱包与充值小挂件】 -----------------
+# ----------------- 🪙【第四步：资产钱包小挂件】 -----------------
 def get_player_rank(balance):
     if balance >= 50000: return "🏆神算"
     if balance >= 20000: return "💎金手"
@@ -195,6 +195,7 @@ if st.session_state.current_tab == "自选平特":
     st.markdown("### 🟢 平特自选（5平码 + 1特码）")
     st.info(f"🛒 选号篮子：平码【{len(st.session_state.manual_ping)}/5】 | 特码【{len(st.session_state.manual_te)}/1】")
     
+    # 区域1：平码巧克力矩阵
     st.markdown("**🟠 选 5 个【平码（正码）】：**")
     st.markdown('<div class="num-ball-wrap">', unsafe_allow_html=True)
     for row in range(7):
@@ -203,6 +204,7 @@ if st.session_state.current_tab == "自选平特":
             num = row * 7 + col + 1
             if num <= 49:
                 is_sel = num in st.session_state.manual_ping
+                # 🔥 通过动态调整 css 容器类，已被选中的号码直接注入 ball-s 样式（变成金黄色立体球座）
                 cls = "ball-s" if is_sel else get_ball_color_class(num)
                 lbl = f"{num}✔" if is_sel else f"{num}"
                 with cols[col]:
@@ -215,6 +217,7 @@ if st.session_state.current_tab == "自选平特":
     st.markdown('</div>', unsafe_allow_html=True)
 
     st.write("")
+    # 区域2：特码巧克力矩阵
     st.markdown("**🔵 选 1 个【特码（特别号码）】：**")
     st.markdown('<div class="num-ball-wrap">', unsafe_allow_html=True)
     for row in range(7):
@@ -223,6 +226,7 @@ if st.session_state.current_tab == "自选平特":
             num = row * 7 + col + 1
             if num <= 49:
                 is_sel = num in st.session_state.manual_te
+                # 🔥 同步特码盘：被选中后秒变金黄色立体球座
                 cls = "ball-s" if is_sel else get_ball_color_class(num)
                 lbl = f"{num}★" if is_sel else f"{num}"
                 with cols[col]:
