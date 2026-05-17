@@ -7,9 +7,9 @@ import requests
 from datetime import datetime
 
 # --- 页面配置 ---
-st.set_page_config(page_title="预言家娱乐模拟盘", page_icon="🎰", layout="centered")
+st.set_page_config(page_title="预言家自选投注盘", page_icon="🎰", layout="centered")
 
-# --- 手机移动端样式适配 (高度还原绿色投注站风格) ---
+# --- 手机移动端样式适配 (绿色高端投注站风格) ---
 st.markdown("""
     <style>
     .block-container { padding-top: 1rem; padding-bottom: 1rem; padding-left: 0.8rem; padding-right: 0.8rem; }
@@ -70,7 +70,7 @@ def fetch_live_data():
         url = "https://cpdata.io"
         response = requests.get(url, timeout=5)
         if response.status_code == 200:
-            item = response.json().get("data", [])[0]
+            item = response.json().get("data", [])
             return {"issue": item.get("issue"), "date": item.get("open_time")[:10], "numbers": [int(x) for x in item.get("numbers")[:6]], "special": int(item.get("numbers"))}
     except Exception:
         pass
@@ -86,7 +86,7 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# 充值体验金小彩蛋
+# 充值体验金
 if st.button("🧧 余额不足？一键免费充值 $5000 模拟金"):
     st.session_state.wallet += 5000.0
     st.rerun()
@@ -106,50 +106,55 @@ st.divider()
 
 # --- 三大官方主流模拟投注选号盘 ---
 st.subheader("📝 请选择模拟投注大厅")
-bet_tabs = st.tabs(["📌 单式自选/机选", "📊 专业复式盘", "🎯 黄金胆拖盘"])
+bet_tabs = st.tabs(["🎯 手动精准点号盘", "📊 专业复式盘", "📌 智能机选盘"])
 
-# 1. 单式投注盘
+# 1. 核心全新升级：手动精准点号盘
 with bet_tabs[0]:
-    st.markdown("### 🟢 单式选号大厅")
-    input_mode = st.radio("选号模式", ["智能机选号码", "手动填写心水码"], horizontal=True)
-    bet_price = st.radio("单式下注单价", ["全注 ($10)", "半注 ($5)"], horizontal=True, key="p1")
-    cost_per_note = 10 if "全注" in bet_price else 5
+    st.markdown("### 🟢 精准自选：平码 ＋ 特码")
+    st.caption("请在下方下拉点号方阵中，手动挑选您的5个平码和1个特码组合。")
     
-    if input_mode == "智能机选号码":
-        notes_to_gen = st.slider("想要机选下注几注？", 1, 5, 1)
-        total_cost = notes_to_gen * cost_per_note
-        st.warning(f"预计本次模拟投注将从钱包扣除：HK$ {total_cost}")
-        
-        if st.button("确认提交机选下注"):
-            if st.session_state.wallet < total_cost:
-                st.error("❌ 抱歉，您的模拟钱包余额不足，请先免费充值！")
-            else:
-                st.session_state.wallet -= total_cost
-                st.success("🎉 模拟投注出票成功！已记入下方存根。")
-                for _ in range(notes_to_gen):
-                    nums = sorted(random.sample(range(1, 50), 6))
-                    st.session_state.bet_history.append({"时间": datetime.now().strftime("%M:%S"), "玩法": "单式机选", "所选号码": str(nums), "模拟下注金额": f"${cost_per_note}"})
-                st.rerun()
-                
-    else:
-        user_code = st.text_input("请输入6个号码（用空格或逗号隔开）", value="1 8 14 23 30 49")
-        if st.button("确认提交自选下注"):
-            try:
-                raw_nums = [int(x) for x in user_code.replace(",", " ").split() if x.strip()]
-                clean_nums = sorted(list(set(raw_nums)))
-                if len(clean_nums) != 6 or any(n < 1 or n > 49 for n in clean_nums):
-                    st.error("⚠️ 格式错误：必须输入6个不重复的 1-49 之间的数字！")
-                elif st.session_state.wallet < cost_per_note:
-                    st.error("❌ 余额不足！")
-                else:
-                    st.session_state.wallet -= cost_per_note
-                    st.session_state.bet_history.append({"时间": datetime.now().strftime("%M:%S"), "玩法": "单式自选", "所选号码": str(clean_nums), "模拟下注金额": f"${cost_per_note}"})
-                    st.success(f"👍 自选注单提交成功！号码为：{clean_nums}")
-                    st.rerun()
-            except Exception:
-                st.error("请输入合法的纯数字组合！")
+    bet_price = st.radio("自选下注单价", ["全注 ($10)", "半注 ($5)"], horizontal=True, key="p_manual")
+    cost_manual = 10 if "全注" in bet_price else 5
+    
+    # 构建1-49的字符串选项方便点击
+    all_options = [i for i in range(1, 50)]
+    
+    # 手机交互式多选点号盘
+    selected_ping = st.multiselect("👉 请点击点选 【5个平码（正码）】", options=all_options, help="必须正好选择5个号码")
+    selected_te = st.multiselect("👉 请点击点选 【1个特码（特别号码）】", options=all_options, help="必须确认选择1个号码")
+    
+    # 动态数量提示防呆
+    st.info(f"当前状态：已选平码 {len(selected_ping)}/5 个 | 已选特码 {len(selected_te)}/1 个")
+    
+    if st.button("🛒 确认提交精准自选注单"):
+        # 执行全方位的严格逻辑自检
+        if len(selected_ping) != 5:
+            st.error("⚠️ 拦截失败：平码数量不正确！必须且只能选择 5 个平码号码。")
+        elif len(selected_te) != 1:
+            st.error("⚠️ 拦截失败：特码数量不正确！必须且只能选择 1 个特码号码。")
+        elif len(set(selected_ping) & set(selected_te)) > 0:
+            intersect = set(selected_ping) & set(selected_te)
+            st.error(f"⚠️ 拦截失败：发现重号！号码 {list(intersect)} 同时存在于平码和特码中，请重新调整！")
+        elif st.session_state.wallet < cost_manual:
+            st.error("❌ 拦截失败：您的模拟钱包余额不足，请在顶栏免费充值。")
+        else:
+            # 扣款并打入注单总账
+            st.session_state.wallet -= cost_manual
+            sorted_ping = sorted(selected_ping)
+            final_te = selected_te[0]
+            
+            # 格式化存根数据结构
+            receipt_code = f"平码:{sorted_ping} | 特码:[{final_te}]"
+            st.session_state.bet_history.append({
+                "时间": datetime.now().strftime("%H:%M:%S"),
+                "玩法": "精准自选(5平1特)",
+                "所选号码": receipt_code,
+                "模拟下注金额": f"${cost_manual}"
+            })
+            st.success(f"🎉 下注成功！电子存根已成功打印至账本底部。")
+            st.rerun()
 
-# 2. 复式投注盘
+# 2. 专业复式盘
 with bet_tabs[1]:
     st.markdown("### 🟢 复式多段组合盘")
     num_count = st.slider("请选择复式包裹号码个数", 7, 12, 7)
@@ -165,33 +170,34 @@ with bet_tabs[1]:
         else:
             st.session_state.wallet -= cost_f
             f_nums = sorted(random.sample(range(1, 50), num_count))
-            st.session_state.bet_history.append({"时间": datetime.now().strftime("%M:%S"), "玩法": f"复式({num_count}码)", "所选号码": str(f_nums), "模拟下注金额": f"${cost_f}"})
+            st.session_state.bet_history.append({"时间": datetime.now().strftime("%H:%M:%S"), "玩法": f"复式({num_count}码)", "所选号码": str(f_nums), "模拟下注金额": f"${cost_f}"})
             st.success(f"🎉 复式注单下注成功！大底号码：{f_nums}")
             st.rerun()
 
-# 3. 胆拖投注盘
+# 3. 智能机选盘
 with bet_tabs[2]:
-    st.markdown("### 🟢 胆拖稳健策略盘")
-    dan_count = st.slider("胆码个数（核心死码）", 1, 5, 2)
-    tuo_count = st.slider("拖码个数（配脚范围）", 7-dan_count, 15, 6)
-    total_notes_dt = math.comb(tuo_count, 6 - dan_count)
-    bet_price_dt = st.radio("胆拖下注单价", ["全注 ($10)", "半注 ($5)"], horizontal=True, key="p3")
-    cost_dt = total_notes_dt * (10 if "全注" in bet_price_dt else 5)
+    st.markdown("### 🟢 智能机选大厅")
+    bet_price_dt = st.radio("机选下注单价", ["全注 ($10)", "半注 ($5)"], horizontal=True, key="p3")
+    cost_dt = 10 if "全注" in bet_price_dt else 5
+    notes_to_gen = st.slider("想要机选下注几注？", 1, 5, 1, key="sl_gen")
+    total_cost = notes_to_gen * int(cost_dt)
     
-    st.info(f"📊 该胆拖组合折算为 **{total_notes_dt}** 注 | 总计需模拟金：**HK$ {cost_dt}**")
+    st.info(f"📊 预计本次机选下注将从钱包扣除：HK$ {total_cost}")
     
-    if st.button("确认提交胆拖投注"):
-        if st.session_state.wallet < cost_dt:
+    if st.button("确认提交机选下注"):
+        if st.session_state.wallet < total_cost:
             st.error("❌ 余额不足！")
         else:
-            st.session_state.wallet -= cost_dt
-            pool = list(range(1, 50))
-            random.shuffle(pool)
-            dans = sorted(pool[:dan_count])
-            tuos = sorted(pool[dan_count:dan_count+tuo_count])
-            
-            st.session_state.bet_history.append({"时间": datetime.now().strftime("%M:%S"), "玩法": f"胆拖({dan_count}胆{tuo_count}拖)", "所选号码": f"胆:{dans} | 拖:{tuos}", "模拟下注金额": f"${cost_dt}"})
-            st.success("🎉 模拟胆拖注单已成功打印出票！")
+            st.session_state.wallet -= total_cost
+            for _ in range(notes_to_gen):
+                line_nums = sorted(random.sample(range(1, 50), 6))
+                st.session_state.bet_history.append({
+                    "时间": datetime.now().strftime("%H:%M:%S"),
+                    "玩法": "智能机选",
+                    "所选号码": str(line_nums),
+                    "模拟下注金额": f"${cost_dt}"
+                })
+            st.success("🎉 智能机选多注成功！已同步录入下方总账。")
             st.rerun()
 
 # --- 历史注单存根总账本 ---
