@@ -10,7 +10,7 @@ from datetime import datetime
 # --- 页面基本配置 ---
 st.set_page_config(page_title="预言家娱乐全超控盘", page_icon="🔮", layout="centered")
 
-# --- 🎯 v30.0 功能完整保留+官方实时核销版样式表 ---
+# --- 🎯 v31.0 完美修复版样式表 ---
 st.markdown("""
     <style>
     .block-container { padding-top: 0.2rem !important; padding-bottom: 0.2rem !important; padding-left: 0.2rem !important; padding-right: 0.2rem !important; }
@@ -68,12 +68,11 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- 🎯 49码波色与2026丙午马年官方生肖对照表（算法智能完整生成） ---
+# --- 🎯 49码波色与2026丙午马年官方生肖对照表 ---
 RED_BALLS = [1, 2, 7, 8, 12, 13, 18, 19, 23, 24, 29, 30, 34, 35, 40, 45, 46]
 BLUE_BALLS = [3, 4, 9, 10, 14, 15, 20, 25, 26, 31, 36, 37, 41, 42, 47, 48]
 GREEN_BALLS = [5, 6, 11, 16, 17, 21, 22, 27, 28, 32, 33, 38, 39, 43, 44, 49]
 
-# 以2026马年（1号为马）顺推全码
 ZODIAC_ORDER = ["马", "蛇", "龙", "兔", "虎", "牛", "鼠", "猪", "狗", "鸡", "猴", "羊"]
 ZODIAC_MAP = {name: [] for name in ZODIAC_ORDER}
 for num in range(1, 50):
@@ -109,7 +108,7 @@ def init_global_shared_db():
 
 global_db = init_global_shared_db()
 
-# 会话隔离私有身份状态锁
+# 会话隔离状态锁
 if 'logged_in_user' not in st.session_state: st.session_state.logged_in_user = None
 if 'manual_ping' not in st.session_state: st.session_state.manual_ping = []
 if 'manual_te' not in st.session_state: st.session_state.manual_te = None
@@ -139,7 +138,6 @@ def fetch_live_data_50():
         pass
     return None
 
-# 尝试热更新抓取
 api_data = fetch_live_data_50()
 if api_data:
     global_db["latest_draw"] = api_data[0]
@@ -164,7 +162,6 @@ with col_info2:
     role_badge = f"<span class='rank-badge'>管理员</span>" if current_user == "admin" else (f"<span class='rank-badge'>玩家</span>" if current_user else "")
     st.markdown(f"<div class='wallet-card-mini'>👤 {current_user if current_user else '未登录'}{role_badge} | 💰 余额: ¥{wallet_val:,.2f}</div>", unsafe_allow_html=True)
 
-# 🚨 管理员全局红牌新用户申请提示系统
 if st.session_state.logged_in_user == "admin":
     pending_reg_count = len([k for k, v in global_db["reg_requests"].items() if v.get("status") == "pending"])
     pending_dep_count = len([d for d in global_db["deposit_requests"] if d.get("status") == "pending"])
@@ -191,11 +188,12 @@ if not st.session_state.logged_in_user:
             global_db["reg_requests"][reg_user] = {"password": reg_pwd, "status": "pending"}
             st.success("🎯 申请已提交物理单例总线！")
 else:
+    u_name = st.session_state.logged_in_user  # ✨ 核心修复：提前全局定义活跃用户名，终结财务中心崩溃
+
     # ----------------- 👑 管理员独立全盘控制后台 -----------------
     if st.session_state.logged_in_user == "admin":
         with st.sidebar.expander("🛠️ 至尊顶层全盘控制后台", expanded=True):
             st.markdown("### 📡 官网同步数据清算核销")
-            st.info(f"待清算官方期号: {latest_draw['issue']}")
             if st.button("🎰 同步官方开奖并全盘清算"):
                 new_balls = latest_draw["numbers"]
                 new_special = latest_draw["special"]
@@ -211,7 +209,7 @@ else:
                     if b_type == "自选平特":
                         hits = len(set(balls) & set(new_balls))
                         if hits > 0: win_amt = amt * (hits * 1.8)
-                    elif b_type == "一码中特" and balls[0] == new_special:
+                    elif b_type == "一码中特" and balls == [new_special]:
                         win_amt = amt * 42.0
                     elif b_type == "两面盘":
                         target = balls[0]
@@ -229,6 +227,22 @@ else:
                     bet["status"] = "已结算"
                 st.success("🎰 大盘根据官方结果清算对奖完成！")
                 st.rerun()
+
+            # ----------------- 🚨 【新增功能】：普通活跃用户全名册面板 -----------------
+            st.markdown("---")
+            st.markdown("### 👥 物理总线全盘活跃用户花名册")
+            user_list_data = []
+            for name, profile in global_db["users"].items():
+                if name != "admin":
+                    user_list_data.append({
+                        "用户名": name,
+                        "钱包余额": f"¥{profile['wallet']:,.2f}",
+                        "账户状态": profile.get("status", "active")
+                    })
+            if user_list_data:
+                st.dataframe(pd.DataFrame(user_list_data), use_container_width=True, hide_index=True)
+            else:
+                st.info("当前应用总线暂无普通玩家数据。")
 
             st.markdown("---")
             st.markdown("### 👥 新用户注册极速过审区")
@@ -332,14 +346,14 @@ else:
         if d_balls and t_balls:
             st.success(f"💡 智能矩阵计算：共可生成平特组合数：{math.comb(len(t_balls), 3 - len(d_balls))} 组")
 
-    # 7. 财务中心玩法
+    # 7. 财务中心玩法（✨ 正常加载，不再报 NameError）
     elif st.session_state.current_tab == "💰 财务中心":
         st.subheader("💰 模拟财务自助通道")
         st.metric("您的当前物理钱包余额", f"¥ {global_db['users'][u_name]['wallet']:,.2f}")
         dep_amt = st.number_input("请输入模拟充值金额", min_value=100.0, step=100.0)
         if st.button("🏦 提交金流充值工单"):
             global_db["deposit_requests"].append({"user": u_name, "amount": dep_amt, "status": "pending"})
-            st.success("🚀 充值工单已打入后台！请使用 admin 账户进行核销确认。")
+            st.success("🚀 充值工单已大盘锁定！请用 admin 账户在侧边栏进行‘确认进账’。")
 
     # --- 实时注单追溯历史底牌 ---
     st.write("---")
